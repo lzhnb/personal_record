@@ -39,7 +39,10 @@ class TokenManager {
     Map<DateTime, int> readingCountMapDatasets = {};
 
     readingMapDatasets.forEach((key, value) {
-      readingCountMapDatasets[key] = value.length;
+      int length = value.length;
+      if (length > 0) {
+        readingCountMapDatasets[key] = length;
+      }
     });
     return readingCountMapDatasets;
   }
@@ -63,8 +66,14 @@ class TokenManager {
     for (Token token in tokens) {
       DateTime? dateTime = DateTime.tryParse(token.date);
       if (dateTime != null) {
-        runningMapDatasets[dateTime] = token.running;
-        readingMapDatasets[dateTime] = token.reading;
+        if (token.running > 0) {
+          // NOTE: it can not in a situation of all 0
+          runningMapDatasets[dateTime] = token.running;
+        }
+        if (token.reading.length > 0) {
+          // NOTE: it can not in a situation of all 0
+          readingMapDatasets[dateTime] = token.reading;
+        }
       }
     }
   }
@@ -128,7 +137,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               DateTime? dateTime = DateTime.tryParse(dateController.text);
               if (dateTime != null) {
                 // NOTE: it can not in a situation of all 0
-                tokenManager.runningMapDatasets[dateTime] = 0;
+                tokenManager.runningMapDatasets.remove(dateTime);
                 tokenManager.readingMapDatasets[dateTime] = [];
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
