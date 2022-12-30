@@ -1,8 +1,5 @@
 import "package:flutter/material.dart";
-import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import "heatmap.dart";
-import "pages/heatmap_calendar_example.dart";
-import "pages/heatmap_example.dart";
 
 void main() {
   runApp(const MyApp());
@@ -20,12 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text("My Heatmap"),
-        ),
-        body: MyHeatMap(),
-      ),
+      home: const MyHeatMap(),
     );
   }
 }
