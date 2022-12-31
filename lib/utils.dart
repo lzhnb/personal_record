@@ -31,27 +31,34 @@ class Token {
       };
 }
 
+Tuple2<Map<DateTime, int>, Map<DateTime, int>> tokensToMaps(
+    List<Token> tokens) {
+  Map<DateTime, int> runningMapDatasets = {};
+  Map<DateTime, int> readingMapDatasets = {};
+
+  for (Token token in tokens) {
+    DateTime? dateTime = DateTime.tryParse(token.date);
+    if (dateTime != null) {
+      if (token.running > 0) {
+        // NOTE: it can not in a situation of all 0
+        runningMapDatasets[dateTime] = token.running;
+      }
+      if (token.reading.isNotEmpty) {
+        // NOTE: it can not in a situation of all 0
+        readingMapDatasets[dateTime] = token.reading.length;
+      }
+    }
+  }
+
+  return Tuple2<Map<DateTime, int>, Map<DateTime, int>>(
+      runningMapDatasets, readingMapDatasets);
+}
+
 class TokenManager {
   Map<DateTime, int> runningMapDatasets = {};
   Map<DateTime, List<String>> readingMapDatasets = {};
 
   TokenManager(this.runningMapDatasets, this.readingMapDatasets);
-
-  int runningCount() {
-    int count = 0;
-    runningMapDatasets.forEach((key, value) {
-      count += value;
-    });
-    return count;
-  }
-
-  int readingCount() {
-    int count = 0;
-    readingMapDatasets.forEach((key, value) {
-      count += value.length;
-    });
-    return count;
-  }
 
   void deletePaper(DateTime date, int index) {
     readingMapDatasets[date]?.removeAt(index);
@@ -61,18 +68,6 @@ class TokenManager {
     int running = runningMapDatasets[date] ?? 0;
     List<String> reading = readingMapDatasets[date] ?? [];
     return Tuple2<int, List<String>>(running, reading);
-  }
-
-  Map<DateTime, int> readingCountMapDatasets() {
-    Map<DateTime, int> readingCountMapDatasets = {};
-
-    readingMapDatasets.forEach((key, value) {
-      int length = value.length;
-      if (length > 0) {
-        readingCountMapDatasets[key] = length;
-      }
-    });
-    return readingCountMapDatasets;
   }
 
   void parseTokens(List<Token> tokens) {

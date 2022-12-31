@@ -5,6 +5,7 @@ import "package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart";
 import "dart:convert";
 import "dart:io";
 import "utils.dart";
+import "package:tuple/tuple.dart";
 
 class MyHeatMap extends StatefulWidget {
   const MyHeatMap({super.key});
@@ -16,9 +17,6 @@ class MyHeatMap extends StatefulWidget {
 class _MyHeatMapState extends State<MyHeatMap> {
   String dataBaseFile = "assets/data/db.json";
 
-  TokenManager tokenManager =
-      TokenManager(<DateTime, int>{}, <DateTime, List<String>>{});
-
   @override
   void dispose() {
     super.dispose();
@@ -28,12 +26,25 @@ class _MyHeatMapState extends State<MyHeatMap> {
   Widget build(BuildContext context) {
     // read json file
     String jsonString = File(dataBaseFile).readAsStringSync();
-    // parse token
+    // parse tokens
     var dataBase = jsonDecode(jsonString)["tokens"] as List;
     List<Token> tokens =
         dataBase.map((tokenJson) => Token.fromJson(tokenJson)).toList();
 
-    tokenManager.parseTokens(tokens);
+    // get maps
+    Tuple2<Map<DateTime, int>, Map<DateTime, int>> datasets =
+        tokensToMaps(tokens);
+    Map<DateTime, int> runningMapDataset = datasets.item1;
+    Map<DateTime, int> readingMapDataset = datasets.item2;
+
+    // count
+    int runningCount = 0, readingCount = 0;
+    runningMapDataset.forEach((key, value) {
+      runningCount += value;
+    });
+    readingMapDataset.forEach((key, value) {
+      readingCount += value;
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -44,7 +55,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              " 🏃‍累计跑步（公里）：${tokenManager.runningCount()}",
+              " 🏃‍累计跑步（公里）：${runningCount}",
               textAlign: TextAlign.left,
               textScaleFactor: 2,
             ),
@@ -54,7 +65,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: HeatMap(
-                  datasets: tokenManager.runningMapDatasets,
+                  datasets: runningMapDataset,
                   size: 18,
                   scrollable: true,
                   startDate: DateTime(2023, 1, 1),
@@ -68,7 +79,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               ),
             ),
             Text(
-              " 📰累计阅读论文：${tokenManager.readingCount()}",
+              " 📰累计阅读论文：${readingCount}",
               textAlign: TextAlign.left,
               textScaleFactor: 2,
             ),
@@ -78,7 +89,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: HeatMap(
-                  datasets: tokenManager.readingCountMapDatasets(),
+                  datasets: readingMapDataset,
                   size: 18,
                   scrollable: true,
                   startDate: DateTime(2023, 1, 1),

@@ -197,9 +197,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           children: [
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                return RenameDialog(context, index);
-              },
+              onPressed: () => RenameDialog(context, index),
             ),
             IconButton(
               icon: const Icon(
@@ -235,7 +233,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   }
 
   // ignore: non_constant_identifier_names
-  void RenameDialog(BuildContext context, int index) {
+  Future<void> RenameDialog(BuildContext context, int index) async {
     // Create AlertDialog
     AlertDialog dialog = AlertDialog(
       title: const Text("重命名文章"),
