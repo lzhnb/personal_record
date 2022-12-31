@@ -31,7 +31,7 @@ class CalendarStorage {
 
   Future<File> writeDatabase(Map<String, dynamic> database) async {
     final File jsonFile = await _localFile;
-    Map<String, dynamic> exportJson = {"tokens": database};
+    Map<String, dynamic> exportJson = database;
     String jsonString = jsonEncode(exportJson);
     return jsonFile.writeAsString(jsonString);
   }
@@ -59,7 +59,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   // parse json
   final DateFormat formatter = DateFormat("yyyy-MM-dd");
-  Map<String, dynamic> dataBase = {};
+  Map<String, dynamic> tokenDatabase = {};
+  Map<String, dynamic> bookDatabase = {};
 
   // File Provider Functions
   Future<File> updateDatabase(Map<String, dynamic> database) {
@@ -150,15 +151,16 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 if (runningDistance != null) {
                   final String dateString = formatter.format(_focusedDay);
                   setState(() {
-                    if (dataBase[dateString] == null) {
-                      dataBase[dateString] = {
+                    if (tokenDatabase[dateString] == null) {
+                      tokenDatabase[dateString] = {
                         "running": runningDistance,
                         "reading": []
                       };
                     } else {
-                      dataBase[dateString]["running"] = runningDistance;
+                      tokenDatabase[dateString]["running"] = runningDistance;
                     }
-                    updateDatabase(dataBase);
+                    updateDatabase(
+                        {"tokens": tokenDatabase, "books": bookDatabase});
                   });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -202,17 +204,18 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               if (paperTitle != "") {
                 final String dateString = formatter.format(_focusedDay);
                 setState(() {
-                  if (dataBase[dateString] == null) {
-                    dataBase[dateString] = {
+                  if (tokenDatabase[dateString] == null) {
+                    tokenDatabase[dateString] = {
                       "running": 0,
                       "reading": [paperTitle]
                     };
                   } else {
-                    dataBase[dateString]["reading"].add(paperTitle);
+                    tokenDatabase[dateString]["reading"].add(paperTitle);
                   }
                   readingController.text = "";
                 });
-                updateDatabase(dataBase);
+                updateDatabase(
+                    {"tokens": tokenDatabase, "books": bookDatabase});
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -254,7 +257,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 } else {
                   setState(
                     () {
-                      dataBase[formatter.format(_focusedDay)]["reading"]
+                      tokenDatabase[formatter.format(_focusedDay)]["reading"]
                           [index] = tempReadingController.text;
                       tempReadingController.text = "";
                       Navigator.of(context).pop(true);
@@ -291,7 +294,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 icon: const Icon(Icons.edit),
                 onPressed: () {
                   _renameDialog(context, index);
-                  updateDatabase(dataBase);
+                  updateDatabase(
+                      {"tokens": tokenDatabase, "books": bookDatabase});
                 },
               ),
               IconButton(
@@ -301,9 +305,10 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 ),
                 onPressed: () {
                   setState(() {
-                    dataBase[formatter.format(_focusedDay)]["reading"]
+                    tokenDatabase[formatter.format(_focusedDay)]["reading"]
                         .removeAt(index);
-                    updateDatabase(dataBase);
+                    updateDatabase(
+                        {"tokens": tokenDatabase, "books": bookDatabase});
                   });
                 },
               ),
@@ -315,20 +320,23 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
     // parse paperList
     List<String> paperList = [];
-    if (dataBase[formatter.format(_focusedDay)] != null) {
-      paperList =
-          (dataBase[formatter.format(_focusedDay)]["reading"] as List<dynamic>)
-              .cast<String>();
+    if (tokenDatabase[formatter.format(_focusedDay)] != null) {
+      paperList = (tokenDatabase[formatter.format(_focusedDay)]["reading"]
+              as List<dynamic>)
+          .cast<String>();
     }
     return (paperList.isEmpty)
         ? Container()
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            shrinkWrap: true,
-            itemCount: paperList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ReadCard(paperList[index], index);
-            },
+        : SizedBox(
+            height: 200,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              shrinkWrap: true,
+              itemCount: paperList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ReadCard(paperList[index], index);
+              },
+            ),
           );
   }
 
@@ -337,7 +345,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     super.initState();
     widget.calendarStorage.parseDatabase().then(((jsonContents) {
       setState(() {
-        dataBase = jsonContents["tokens"];
+        tokenDatabase = jsonContents["tokens"];
+        bookDatabase = jsonContents["books"];
       });
     }));
   }
@@ -408,7 +417,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               child: Row(
                 children: <Widget>[
                   Text(
-                    " 🏃‍今日跑步（公里）：${(dataBase[formatter.format(_focusedDay)] == null) ? 0 : dataBase[formatter.format(_focusedDay)]["running"] ?? 0}",
+                    " 🏃‍今日跑步（公里）：${(tokenDatabase[formatter.format(_focusedDay)] == null) ? 0 : tokenDatabase[formatter.format(_focusedDay)]["running"] ?? 0}",
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
                   ),
@@ -422,7 +431,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    " 📰今日阅读论文：${(dataBase[formatter.format(_focusedDay)] == null) ? 0 : dataBase[formatter.format(_focusedDay)]["reading"].length ?? 0}",
+                    " 📰今日阅读论文：${(tokenDatabase[formatter.format(_focusedDay)] == null) ? 0 : tokenDatabase[formatter.format(_focusedDay)]["reading"].length ?? 0}",
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
                   ),
