@@ -26,9 +26,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   // parse json
   final DateFormat formatter = DateFormat("yyyy-MM-dd");
   final String dataBaseFile = "assets/data/db.json";
-  List<Token> tokens = [];
-  TokenManager tokenManager =
-      TokenManager(<String, int>{}, <String, List<String>>{});
+  final Map<String, dynamic> dataBase = {};
 
   // ignore: non_constant_identifier_names
   Widget RunningInputField() {
@@ -112,13 +110,17 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               onPressed: () {
                 int? runningDistance = int.tryParse(runningController.text);
                 if (runningDistance != null) {
-                  setState(
-                    () {
-                      // update running
-                      tokenManager.runningMapDatasets[
-                          formatter.format(_focusedDay)] = runningDistance;
-                    },
-                  );
+                  final String dateString = formatter.format(_focusedDay);
+                  setState(() {
+                    if (dataBase[dateString] == null) {
+                      dataBase[dateString] = {
+                        "running": runningDistance,
+                        "reading": []
+                      };
+                    } else {
+                      dataBase[dateString]["running"] = runningDistance;
+                    }
+                  });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -157,23 +159,20 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
             ),
             child: const Text("COMMIT READING"),
             onPressed: () {
-              String paperTitle = readingController.text;
+              final String paperTitle = readingController.text;
               if (paperTitle != "") {
-                // update reading list
-                setState(
-                  () {
-                    final String dateString = formatter.format(_focusedDay);
-                    if (tokenManager.readingMapDatasets[dateString] == null) {
-                      tokenManager.readingMapDatasets[dateString] = [
-                        paperTitle
-                      ];
-                    } else {
-                      tokenManager.readingMapDatasets[dateString]
-                          ?.add(paperTitle);
-                    }
-                    readingController.text = "";
-                  },
-                );
+                final String dateString = formatter.format(_focusedDay);
+                setState(() {
+                  if (dataBase[dateString] == null) {
+                    dataBase[dateString] = {
+                      "running": 0,
+                      "reading": [paperTitle]
+                    };
+                  } else {
+                    dataBase[dateString]["reading"].add(paperTitle);
+                  }
+                  readingController.text = "";
+                });
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -201,19 +200,14 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           children: [
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () => RenameDialog(context, index),
+              onPressed: () => _renameDialog(context, index),
             ),
             IconButton(
               icon: const Icon(
                 Icons.delete,
                 color: Colors.redAccent,
               ),
-              onPressed: () {
-                setState(() {
-                  // remove this paper
-                  tokenManager.deletePaper(_focusedDay, index);
-                });
-              },
+              onPressed: () => _deleteReading(index),
             ),
           ],
         ),
@@ -223,7 +217,13 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   // ignore: non_constant_identifier_names
   Widget ReadingList() {
-    List<String> paperList = tokenManager.dateQeury(_focusedDay).item2;
+    // parse paperList
+    List<String> paperList = [];
+    if (dataBase[formatter.format(_focusedDay)] != null) {
+      paperList =
+          (dataBase[formatter.format(_focusedDay)]["reading"] as List<dynamic>)
+              .cast<String>();
+    }
     return (paperList.isEmpty)
         ? Container()
         : ListView.builder(
@@ -236,8 +236,14 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           );
   }
 
+  Future<void> _deleteReading(int index) async {
+    setState(() {
+      dataBase[formatter.format(_focusedDay)]["reading"].removeAt(index);
+    });
+  }
+
   // ignore: non_constant_identifier_names
-  Future<void> RenameDialog(BuildContext context, int index) async {
+  Future<void> _renameDialog(BuildContext context, int index) async {
     // Create AlertDialog
     AlertDialog dialog = AlertDialog(
       title: const Text("重命名文章"),
@@ -261,8 +267,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               } else {
                 setState(
                   () {
-                    tokenManager.readingMapDatasets[
-                            formatter.format(_focusedDay)]![index] =
+                    dataBase[formatter.format(_focusedDay)]["reading"][index] =
                         tempReadingController.text;
                     tempReadingController.text = "";
                     Navigator.of(context).pop(true);
@@ -285,10 +290,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   }
 
   Future<void> saveAsJson() async {
-    // convert `runningMapDatasets` into tokens
-    Map<String, dynamic> exportTokens = tokenManager.exportTokens();
     // write into json file
-    Map<String, dynamic> exportJson = {"tokens": exportTokens};
+    Map<String, dynamic> exportJson = {"tokens": dataBase};
     try {
       File jsonFile = File(dataBaseFile);
       String jsonString = jsonEncode(exportJson);
@@ -297,7 +300,6 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
       // ignore: avoid_print
       print("faile to write into $dataBaseFile!");
     }
-    // tokenManager.parseTokens(exportTokens);
   }
 
   @override
@@ -311,14 +313,13 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     // read json file
     String jsonString = File(dataBaseFile).readAsStringSync();
     // parse token
-    Map<String, dynamic> dataBase = jsonDecode(jsonString)["tokens"];
-    dataBase.forEach((date, value) {
-      int running = value["running"] ?? 0;
-      List<String> reading = (value["reading"] as List<dynamic>).cast<String>();
-      tokens.add(Token(date, running, reading));
-    });
+    Map<String, dynamic> _dataBase = jsonDecode(jsonString)["tokens"];
 
-    tokenManager.parseTokens(tokens);
+    _dataBase.forEach(
+      (key, value) {
+        dataBase[key] = value;
+      },
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -387,7 +388,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               child: Row(
                 children: <Widget>[
                   Text(
-                    " 🏃‍今日跑步（公里）：${tokenManager.dateQeury(_focusedDay).item1}",
+                    " 🏃‍今日跑步（公里）：${(dataBase[formatter.format(_focusedDay)] == null) ? 0 : dataBase[formatter.format(_focusedDay)]["running"] ?? 0}",
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
                   ),
@@ -401,7 +402,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    " 📰今日阅读论文：${tokenManager.dateQeury(_focusedDay).item2.length}",
+                    " 📰今日阅读论文：${(dataBase[formatter.format(_focusedDay)] == null) ? 0 : dataBase[formatter.format(_focusedDay)]["reading"].length ?? 0}",
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
                   ),

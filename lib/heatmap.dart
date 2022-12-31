@@ -29,20 +29,16 @@ class _MyHeatMapState extends State<MyHeatMap> {
     // parse tokens
     Map<String, dynamic> dataBase = jsonDecode(jsonString)["tokens"];
     int runningCount = 0, readingCount = 0;
-    List<Token> tokens = [];
+    Map<DateTime, int> runningMapDataset = {};
+    Map<DateTime, int> readingMapDataset = {};
     dataBase.forEach((date, value) {
       int running = value["running"] ?? 0;
       List<String> reading = (value["reading"] as List<dynamic>).cast<String>();
       runningCount += running;
       readingCount += reading.length;
-      tokens.add(Token(date, running, reading));
+      runningMapDataset[DateTime.parse(date)] = running;
+      readingMapDataset[DateTime.parse(date)] = reading.length;
     });
-
-    // get maps
-    Tuple2<Map<DateTime, int>, Map<DateTime, int>> datasets =
-        tokensToMaps(tokens);
-    Map<DateTime, int> runningMapDataset = datasets.item1;
-    Map<DateTime, int> readingMapDataset = datasets.item2;
 
     return Scaffold(
       appBar: AppBar(
