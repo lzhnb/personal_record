@@ -3,6 +3,7 @@ import "dart:convert";
 import "dart:io";
 import "package:table_calendar/table_calendar.dart";
 import "package:flutter/material.dart";
+import "package:intl/intl.dart";
 
 class CalendarDashboard extends StatefulWidget {
   const CalendarDashboard({super.key});
@@ -23,9 +24,11 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   final TextEditingController tempReadingController = TextEditingController();
 
   // parse json
-  String dataBaseFile = "assets/data/db.json";
+  final DateFormat formatter = DateFormat("yyyy-MM-dd");
+  final String dataBaseFile = "assets/data/db.json";
+  List<Token> tokens = [];
   TokenManager tokenManager =
-      TokenManager(<DateTime, int>{}, <DateTime, List<String>>{});
+      TokenManager(<String, int>{}, <String, List<String>>{});
 
   // ignore: non_constant_identifier_names
   Widget RunningInputField() {
@@ -112,8 +115,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                   setState(
                     () {
                       // update running
-                      tokenManager.runningMapDatasets[_focusedDay] =
-                          runningDistance;
+                      tokenManager.runningMapDatasets[
+                          formatter.format(_focusedDay)] = runningDistance;
                     },
                   );
                 } else {
@@ -159,12 +162,13 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 // update reading list
                 setState(
                   () {
-                    if (tokenManager.readingMapDatasets[_focusedDay] == null) {
-                      tokenManager.readingMapDatasets[_focusedDay] = [
+                    final String dateString = formatter.format(_focusedDay);
+                    if (tokenManager.readingMapDatasets[dateString] == null) {
+                      tokenManager.readingMapDatasets[dateString] = [
                         paperTitle
                       ];
                     } else {
-                      tokenManager.readingMapDatasets[_focusedDay]
+                      tokenManager.readingMapDatasets[dateString]
                           ?.add(paperTitle);
                     }
                     readingController.text = "";
@@ -252,16 +256,19 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
         ElevatedButton(
             child: const Text("确认"),
             onPressed: () {
-              setState(() {
-                if (tempReadingController.text == "") {
-                  Navigator.of(context).pop(false);
-                } else {
-                  tokenManager.readingMapDatasets[_focusedDay]![index] =
-                      tempReadingController.text;
-                  tempReadingController.text = "";
-                  Navigator.of(context).pop(true);
-                }
-              });
+              if (tempReadingController.text == "") {
+                Navigator.of(context).pop(false);
+              } else {
+                setState(
+                  () {
+                    tokenManager.readingMapDatasets[
+                            formatter.format(_focusedDay)]![index] =
+                        tempReadingController.text;
+                    tempReadingController.text = "";
+                    Navigator.of(context).pop(true);
+                  },
+                );
+              }
             }),
         ElevatedButton(
             child: const Text("退出"),
@@ -279,7 +286,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   Future<void> saveAsJson() async {
     // convert `runningMapDatasets` into tokens
-    List<Token> exportTokens = tokenManager.exportTokens();
+    Map<String, dynamic> exportTokens = tokenManager.exportTokens();
     // write into json file
     Map<String, dynamic> exportJson = {"tokens": exportTokens};
     try {
@@ -290,7 +297,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
       // ignore: avoid_print
       print("faile to write into $dataBaseFile!");
     }
-    tokenManager.parseTokens(exportTokens);
+    // tokenManager.parseTokens(exportTokens);
   }
 
   @override
@@ -304,9 +311,12 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     // read json file
     String jsonString = File(dataBaseFile).readAsStringSync();
     // parse token
-    var dataBase = jsonDecode(jsonString)["tokens"] as List;
-    List<Token> tokens =
-        dataBase.map((tokenJson) => Token.fromJson(tokenJson)).toList();
+    Map<String, dynamic> dataBase = jsonDecode(jsonString)["tokens"];
+    dataBase.forEach((date, value) {
+      int running = value["running"] ?? 0;
+      List<String> reading = (value["reading"] as List<dynamic>).cast<String>();
+      tokens.add(Token(date, running, reading));
+    });
 
     tokenManager.parseTokens(tokens);
 
