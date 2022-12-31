@@ -2,119 +2,9 @@
 
 import "package:flutter/material.dart";
 import "package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart";
-import 'dart:convert';
-import 'dart:io';
-
-class Token {
-  String date;
-  int running;
-  List<String> reading;
-
-  Token(this.date, this.running, this.reading);
-
-  factory Token.fromJson(dynamic json) {
-    return Token(json['date'] as String, json['running'] as int,
-        (json["reading"] as List<dynamic>).cast<String>());
-  }
-
-  @override
-  String toString() {
-    return '{ ${date}, ${running}, ${reading.toString()}}';
-  }
-
-  Map toJson() => {
-        "date": date,
-        "running": running,
-        "reading": reading,
-      };
-}
-
-class TokenManager {
-  Map<DateTime, int> runningMapDatasets = {};
-  Map<DateTime, List<String>> readingMapDatasets = {};
-
-  TokenManager(this.runningMapDatasets, this.readingMapDatasets);
-
-  int runningCount() {
-    int count = 0;
-    runningMapDatasets.forEach((key, value) {
-      count += value;
-    });
-    return count;
-  }
-
-  int readingCount() {
-    int count = 0;
-    readingMapDatasets.forEach((key, value) {
-      count += value.length;
-    });
-    return count;
-  }
-
-  Map<DateTime, int> readingCountMapDatasets() {
-    Map<DateTime, int> readingCountMapDatasets = {};
-
-    readingMapDatasets.forEach((key, value) {
-      int length = value.length;
-      if (length > 0) {
-        readingCountMapDatasets[key] = length;
-      }
-    });
-    return readingCountMapDatasets;
-  }
-
-  void parseTokens(List<Token> tokens) {
-    /*
-    Example:
-    {
-      "user": [
-        {
-          "date": "2023-10-01",
-          "running": 10,
-          "reading": [
-            "paper1",
-            "paper2"
-          ]
-        }
-      ]
-    }
-    */
-    for (Token token in tokens) {
-      DateTime? dateTime = DateTime.tryParse(token.date);
-      if (dateTime != null) {
-        if (token.running > 0) {
-          // NOTE: it can not in a situation of all 0
-          runningMapDatasets[dateTime] = token.running;
-        }
-        if (token.reading.isNotEmpty) {
-          // NOTE: it can not in a situation of all 0
-          readingMapDatasets[dateTime] = token.reading;
-        }
-      }
-    }
-  }
-
-  List<Token> exportTokens() {
-    List<Token> exportTokens = [];
-    // get all dates
-    List<DateTime> runningDates = runningMapDatasets.keys.toList();
-    List<DateTime> readingDates = readingMapDatasets.keys.toList();
-    Set<DateTime> allDatesSet = <DateTime>{};
-    allDatesSet.addAll(runningDates);
-    allDatesSet.addAll(readingDates);
-    List<DateTime> allDates = allDatesSet.toList();
-    // loop all dates
-    for (DateTime date in allDates) {
-      String dateString =
-          "${date.year}-${date.month.toString().padLeft(2, "0")}-${date.day.toString().padLeft(2, "0")}";
-      int runningDistance = runningMapDatasets[date] ?? 0;
-      List<String> readingPapers = readingMapDatasets[date] ?? [];
-      Token token = Token(dateString, runningDistance, readingPapers);
-      exportTokens.add(token);
-    }
-    return exportTokens;
-  }
-}
+import "dart:convert";
+import "dart:io";
+import "utils.dart";
 
 class MyHeatMap extends StatefulWidget {
   const MyHeatMap({super.key});
@@ -124,210 +14,14 @@ class MyHeatMap extends StatefulWidget {
 }
 
 class _MyHeatMapState extends State<MyHeatMap> {
-  final TextEditingController dateController = TextEditingController();
-  final TextEditingController runningController = TextEditingController();
-  final TextEditingController readingController = TextEditingController();
-
   String dataBaseFile = "assets/data/db.json";
 
   TokenManager tokenManager =
       TokenManager(<DateTime, int>{}, <DateTime, List<String>>{});
 
-  // ignore: non_constant_identifier_names
-  Widget DateTextField() {
-    DateTime now = DateTime.now();
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16.0),
-      child: TextField(
-        controller: dateController,
-        autofocus: true,
-        decoration: InputDecoration(
-          enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xffe7e7e7), width: 1.0)),
-          focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF20bca4), width: 1.0)),
-          labelText: "YYYY-MM-DD",
-          hintText:
-              "${now.year}-${now.month.toString().padLeft(2, "0")}-${now.day.toString().padLeft(2, "0")}",
-          hintStyle: const TextStyle(color: Colors.grey),
-          isDense: true,
-          suffix: ElevatedButton(
-            child: const Text("CLEAR"),
-            onPressed: () {
-              DateTime? dateTime = DateTime.tryParse(dateController.text);
-              if (dateTime != null) {
-                // NOTE: it can not in a situation of all 0
-                tokenManager.runningMapDatasets.remove(dateTime);
-                tokenManager.readingMapDatasets[dateTime] = [];
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Invalid input datetime!"),
-                  ),
-                );
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ignore: non_constant_identifier_names
-  Widget RunningInputField() {
-    return Padding(
-        padding:
-            const EdgeInsets.only(left: 16, right: 16, top: 8.0, bottom: 8.0),
-        child: Row(
-          children: <Widget>[
-            Container(
-              height: 40,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(width: 1, color: Colors.black12)),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  // Minus
-                  IconButton(
-                    padding: const EdgeInsets.all(0),
-                    icon: const Icon(Icons.remove),
-                    onPressed: (() {
-                      if (runningController.text == "") {
-                        runningController.text = "0";
-                      } else if (runningController.text == "0") {
-                      } else {
-                        runningController.text =
-                            (int.parse(runningController.text) - 1).toString();
-                      }
-                    }),
-                  ),
-                  // Textfield
-                  Container(
-                    width: 80,
-                    decoration: const BoxDecoration(
-                        border: Border(
-                            left: BorderSide(width: 1, color: Colors.black12),
-                            right:
-                                BorderSide(width: 1, color: Colors.black12))),
-                    child: TextField(
-                      controller: runningController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 20),
-                      enableInteractiveSelection: false,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.only(
-                            left: 0, top: 2, bottom: 2, right: 0),
-                        border: OutlineInputBorder(
-                          gapPadding: 0,
-                          borderSide: BorderSide(
-                            width: 0,
-                            style: BorderStyle.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Plus
-                  IconButton(
-                    padding: const EdgeInsets.all(0),
-                    icon: const Icon(Icons.add),
-                    onPressed: (() {
-                      if (runningController.text == "") {
-                        runningController.text = "1";
-                      } else {
-                        runningController.text =
-                            (int.parse(runningController.text) + 1).toString();
-                      }
-                    }),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8),
-              child: ElevatedButton(
-                child: const Text("COMMIT RUNNING"),
-                onPressed: () {
-                  DateTime? dateTime = DateTime.tryParse(dateController.text);
-                  int? runningDistance = int.tryParse(runningController.text);
-                  if (dateTime != null && runningDistance != null) {
-                    tokenManager.runningMapDatasets[dateTime] = runningDistance;
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text("Invalid input datetime or running distance!"),
-                      ),
-                    );
-                  }
-                },
-              ),
-            )
-          ],
-        ));
-  }
-
-  // ignore: non_constant_identifier_names
-  Widget ReadingTextField() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
-      child: TextField(
-        controller: readingController,
-        decoration: InputDecoration(
-          enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xffe7e7e7), width: 1.0)),
-          focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF20bca4), width: 1.0)),
-          hintText: "Paper Title",
-          hintStyle: const TextStyle(color: Colors.grey),
-          isDense: true,
-          suffix: ElevatedButton(
-            child: const Text("COMMIT READING"),
-            onPressed: () {
-              DateTime? dateTime = DateTime.tryParse(dateController.text);
-              String paperTitle = readingController.text;
-              if (dateTime != null && paperTitle != "") {
-                if (tokenManager.readingMapDatasets[dateTime] == null) {
-                  tokenManager.readingMapDatasets[dateTime] = [paperTitle];
-                } else {
-                  tokenManager.readingMapDatasets[dateTime]?.add(paperTitle);
-                }
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Invalid input datetime!"),
-                  ),
-                );
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _saveAsJson() async {
-    // convert `runningMapDatasets` into tokens
-    List<Token> exportTokens = tokenManager.exportTokens();
-    // write into json file
-    Map<String, dynamic> exportJson = {"tokens": exportTokens};
-    try {
-      File jsonFile = File(dataBaseFile);
-      String jsonString = jsonEncode(exportJson);
-      jsonFile.writeAsString(jsonString);
-    } catch (e) {
-      // ignore: avoid_print
-      print("faile to write into ${dataBaseFile}!");
-    }
-  }
-
   @override
   void dispose() {
     super.dispose();
-    dateController.dispose();
-    runningController.dispose();
   }
 
   @override
@@ -343,13 +37,12 @@ class _MyHeatMapState extends State<MyHeatMap> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Heatmap"),
+        title: const Text("My Calendar Heatmap"),
       ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DateTextField(),
             Text(
               " 🏃‍累计跑步（公里）：${tokenManager.runningCount()}",
               textAlign: TextAlign.left,
@@ -369,22 +62,11 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   textColor: Colors.black,
                   colorMode: ColorMode.opacity,
                   colorsets: const {
-                    1: Colors.orange,
-                  },
-                  onClick: (value) {
-                    setState(() {
-                      dateController.text =
-                          "${value.year}-${value.month.toString().padLeft(2, "0")}-${value.day.toString().padLeft(2, "0")}";
-                      int distance = tokenManager.runningMapDatasets[
-                              DateTime.parse(dateController.text)] ??
-                          1;
-                      runningController.text = distance.toString();
-                    });
+                    1: Color.fromRGBO(255, 144, 0, 1.0),
                   },
                 ),
               ),
             ),
-            RunningInputField(),
             Text(
               " 📰累计阅读论文：${tokenManager.readingCount()}",
               textAlign: TextAlign.left,
@@ -404,24 +86,13 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   textColor: Colors.black,
                   colorMode: ColorMode.opacity,
                   colorsets: const {
-                    1: Colors.red,
-                  },
-                  onClick: (value) {
-                    setState(() {
-                      dateController.text =
-                          "${value.year}-${value.month.toString().padLeft(2, "0")}-${value.day.toString().padLeft(2, "0")}";
-                    });
+                    1: Color.fromRGBO(218, 65, 64, 1.0),
                   },
                 ),
               ),
             ),
-            ReadingTextField(),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _saveAsJson,
-        child: const Icon(Icons.save),
       ),
     );
   }

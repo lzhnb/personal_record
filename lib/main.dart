@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "heatmap.dart";
+import "dashboard.dart";
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHeatMap(),
+      routes: {
+        "/": (context) => const CalendarDashboard(),
+        "/HeatMap": (context) => const MyHeatMap(),
+      },
     );
   }
 }
