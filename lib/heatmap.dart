@@ -4,8 +4,6 @@ import "package:flutter/material.dart";
 import "package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart";
 import "dart:convert";
 import "dart:io";
-import "utils.dart";
-import "package:tuple/tuple.dart";
 
 class MyHeatMap extends StatefulWidget {
   const MyHeatMap({super.key});
@@ -42,6 +40,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromRGBO(94, 161, 254, 1.0),
         title: const Text("My Calendar Heatmap"),
       ),
       body: SafeArea(

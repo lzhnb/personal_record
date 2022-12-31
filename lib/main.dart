@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: {
-        "/": (context) => const CalendarDashboard(),
+        "/": (context) => CalendarDashboard(),
         "/HeatMap": (context) => const MyHeatMap(),
       },
     );

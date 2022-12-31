@@ -1,12 +1,46 @@
-import "utils.dart";
 import "dart:convert";
 import "dart:io";
 import "package:table_calendar/table_calendar.dart";
 import "package:flutter/material.dart";
+// ignore: depend_on_referenced_packages
 import "package:intl/intl.dart";
 
+final kToday = DateTime.now();
+final kFirstDay = DateTime(kToday.year - 1, 1, 1);
+final kLastDay = DateTime(kToday.year + 1, 12, 31);
+
+class CalendarStorage {
+  Future<File> get _localFile async {
+    const String path = "assets/data/db.json";
+    return File(path);
+  }
+
+  Future<Map<String, dynamic>> parseDatabase() async {
+    Map<String, dynamic> database = {};
+    try {
+      final File jsonFile = await _localFile;
+
+      // Read the file
+      final jsonContents = await jsonFile.readAsString();
+      database = jsonDecode(jsonContents);
+      return database;
+    } catch (e) {
+      return database;
+    }
+  }
+
+  Future<File> writeDatabase(Map<String, dynamic> database) async {
+    final File jsonFile = await _localFile;
+    Map<String, dynamic> exportJson = {"tokens": database};
+    String jsonString = jsonEncode(exportJson);
+    return jsonFile.writeAsString(jsonString);
+  }
+}
+
 class CalendarDashboard extends StatefulWidget {
-  const CalendarDashboard({super.key});
+  CalendarDashboard({super.key});
+
+  final CalendarStorage calendarStorage = CalendarStorage();
 
   @override
   // ignore: library_private_types_in_public_api
@@ -25,8 +59,12 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   // parse json
   final DateFormat formatter = DateFormat("yyyy-MM-dd");
-  final String dataBaseFile = "assets/data/db.json";
-  final Map<String, dynamic> dataBase = {};
+  Map<String, dynamic> dataBase = {};
+
+  // File Provider Functions
+  Future<File> updateDatabase(Map<String, dynamic> database) {
+    return widget.calendarStorage.writeDatabase(database);
+  }
 
   // ignore: non_constant_identifier_names
   Widget RunningInputField() {
@@ -120,6 +158,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                     } else {
                       dataBase[dateString]["running"] = runningDistance;
                     }
+                    updateDatabase(dataBase);
                   });
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -173,6 +212,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                   }
                   readingController.text = "";
                 });
+                updateDatabase(dataBase);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -188,35 +228,91 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   }
 
   // ignore: non_constant_identifier_names
-  Widget ReadCard(String title, int index) {
-    return Card(
-      child: ListTile(
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 18),
-        ),
-        trailing: Wrap(
-          // spacing: -16,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _renameDialog(context, index),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.delete,
-                color: Colors.redAccent,
-              ),
-              onPressed: () => _deleteReading(index),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ignore: non_constant_identifier_names
   Widget ReadingList() {
+    // ignore: no_leading_underscores_for_local_identifiers
+    Future<void> _renameDialog(BuildContext context, int index) async {
+      // Create AlertDialog
+      AlertDialog dialog = AlertDialog(
+        title: const Text("重命名文章"),
+        content: TextField(
+          controller: tempReadingController,
+          style: const TextStyle(color: Colors.black87),
+          decoration: const InputDecoration(
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue),
+              )),
+        ),
+        actions: [
+          ElevatedButton(
+              child: const Text("确认"),
+              onPressed: () {
+                if (tempReadingController.text == "") {
+                  Navigator.of(context).pop(false);
+                } else {
+                  setState(
+                    () {
+                      dataBase[formatter.format(_focusedDay)]["reading"]
+                          [index] = tempReadingController.text;
+                      tempReadingController.text = "";
+                      Navigator.of(context).pop(true);
+                    },
+                  );
+                }
+              }),
+          ElevatedButton(
+              child: const Text("退出"),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              }),
+        ],
+      );
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return dialog;
+          });
+    }
+
+    // ignore: non_constant_identifier_names
+    Widget ReadCard(String title, int index) {
+      return Card(
+        child: ListTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontSize: 18),
+          ),
+          trailing: Wrap(
+            // spacing: -16,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  _renameDialog(context, index);
+                  updateDatabase(dataBase);
+                },
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                  color: Colors.redAccent,
+                ),
+                onPressed: () {
+                  setState(() {
+                    dataBase[formatter.format(_focusedDay)]["reading"]
+                        .removeAt(index);
+                    updateDatabase(dataBase);
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     // parse paperList
     List<String> paperList = [];
     if (dataBase[formatter.format(_focusedDay)] != null) {
@@ -236,70 +332,14 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           );
   }
 
-  Future<void> _deleteReading(int index) async {
-    setState(() {
-      dataBase[formatter.format(_focusedDay)]["reading"].removeAt(index);
-    });
-  }
-
-  // ignore: non_constant_identifier_names
-  Future<void> _renameDialog(BuildContext context, int index) async {
-    // Create AlertDialog
-    AlertDialog dialog = AlertDialog(
-      title: const Text("重命名文章"),
-      content: TextField(
-        controller: tempReadingController,
-        style: const TextStyle(color: Colors.black87),
-        decoration: const InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
-            )),
-      ),
-      actions: [
-        ElevatedButton(
-            child: const Text("确认"),
-            onPressed: () {
-              if (tempReadingController.text == "") {
-                Navigator.of(context).pop(false);
-              } else {
-                setState(
-                  () {
-                    dataBase[formatter.format(_focusedDay)]["reading"][index] =
-                        tempReadingController.text;
-                    tempReadingController.text = "";
-                    Navigator.of(context).pop(true);
-                  },
-                );
-              }
-            }),
-        ElevatedButton(
-            child: const Text("退出"),
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            }),
-      ],
-    );
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return dialog;
-        });
-  }
-
-  Future<void> saveAsJson() async {
-    // write into json file
-    Map<String, dynamic> exportJson = {"tokens": dataBase};
-    try {
-      File jsonFile = File(dataBaseFile);
-      String jsonString = jsonEncode(exportJson);
-      jsonFile.writeAsString(jsonString);
-    } catch (e) {
-      // ignore: avoid_print
-      print("faile to write into $dataBaseFile!");
-    }
+  @override
+  void initState() {
+    super.initState();
+    widget.calendarStorage.parseDatabase().then(((jsonContents) {
+      setState(() {
+        dataBase = jsonContents["tokens"];
+      });
+    }));
   }
 
   @override
@@ -310,77 +350,57 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    // read json file
-    String jsonString = File(dataBaseFile).readAsStringSync();
-    // parse token
-    Map<String, dynamic> _dataBase = jsonDecode(jsonString)["tokens"];
-
-    _dataBase.forEach(
-      (key, value) {
-        dataBase[key] = value;
-      },
-    );
-
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromRGBO(101, 187, 92, 1.0),
         title: const Text("Calendar Dashboard"),
       ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TableCalendar(
-              firstDay: kFirstDay,
-              lastDay: kLastDay,
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) {
-                // Use `selectedDayPredicate` to determine which day is currently selected.
-                // If this returns true, then `day` will be marked as selected.
-
-                // Using `isSameDay` is recommended to disregard
-                // the time-part of compared DateTime objects.
-                return isSameDay(_selectedDay, day);
-              },
-              onDaySelected: (selectedDay, focusedDay) {
-                if (!isSameDay(_selectedDay, selectedDay)) {
-                  // Call `setState()` when updating the selected day
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                }
-              },
-              onFormatChanged: (format) {
-                if (_calendarFormat != format) {
-                  // Call `setState()` when updating calendar format
-                  setState(() {
-                    _calendarFormat = format;
-                  });
-                }
-              },
-              onPageChanged: (focusedDay) {
-                // No need to call `setState()` here
-                _focusedDay = focusedDay;
-              },
+            Center(
+              child: Text(
+                " 📅日期：${formatter.format(_focusedDay)}",
+                textScaleFactor: 2,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: <Widget>[
-                  Text(
-                    " 📅日期：${_focusedDay.year}-${_focusedDay.month.toString().padLeft(2, "0")}-${_focusedDay.day.toString().padLeft(2, "0")}",
-                    textScaleFactor: 2,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 8),
-                    child: ElevatedButton(
-                      onPressed: saveAsJson,
-                      child: const Text("SAVE"),
-                    ),
-                  ),
-                ],
+            Card(
+              child: TableCalendar(
+                firstDay: kFirstDay,
+                lastDay: kLastDay,
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) {
+                  // Use `selectedDayPredicate` to determine which day is currently selected.
+                  // If this returns true, then `day` will be marked as selected.
+
+                  // Using `isSameDay` is recommended to disregard
+                  // the time-part of compared DateTime objects.
+                  return isSameDay(_selectedDay, day);
+                },
+                onDaySelected: (selectedDay, focusedDay) {
+                  if (!isSameDay(_selectedDay, selectedDay)) {
+                    // Call `setState()` when updating the selected day
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  }
+                },
+                onFormatChanged: (format) {
+                  if (_calendarFormat != format) {
+                    // Call `setState()` when updating calendar format
+                    setState(() {
+                      _calendarFormat = format;
+                    });
+                  }
+                },
+                onPageChanged: (focusedDay) {
+                  // No need to call `setState()` here
+                  _focusedDay = focusedDay;
+                },
               ),
             ),
             Padding(
@@ -415,6 +435,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color.fromRGBO(94, 161, 254, 1.0),
         onPressed: () => Navigator.of(context).pushNamed("/HeatMap"),
         child: const Icon(Icons.visibility),
       ),
