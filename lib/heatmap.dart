@@ -34,8 +34,12 @@ class _MyHeatMapState extends State<MyHeatMap> {
       List<String> reading = (value["reading"] as List<dynamic>).cast<String>();
       runningCount += running;
       readingCount += reading.length;
-      runningMapDataset[DateTime.parse(date)] = running;
-      readingMapDataset[DateTime.parse(date)] = reading.length;
+      if (running > 0) {
+        runningMapDataset[DateTime.parse(date)] = running;
+      }
+      if (reading.isNotEmpty) {
+        readingMapDataset[DateTime.parse(date)] = reading.length;
+      }
     });
 
     return Scaffold(
