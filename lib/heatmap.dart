@@ -125,7 +125,7 @@ class MyHeatMap extends StatefulWidget {
 
 class _MyHeatMapState extends State<MyHeatMap> {
   final TextEditingController dateController = TextEditingController();
-  final TextEditingController runnningController = TextEditingController();
+  final TextEditingController runningController = TextEditingController();
   final TextEditingController readingController = TextEditingController();
 
   String dataBaseFile = "assets/data/db.json";
@@ -174,39 +174,99 @@ class _MyHeatMapState extends State<MyHeatMap> {
   }
 
   // ignore: non_constant_identifier_names
-  Widget RunningTextField() {
+  Widget RunningInputField() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
-      child: TextField(
-        controller: runnningController,
-        decoration: InputDecoration(
-          enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xffe7e7e7), width: 1.0)),
-          focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF20bca4), width: 1.0)),
-          hintText: "Running Distance: 5",
-          hintStyle: const TextStyle(color: Colors.grey),
-          isDense: true,
-          suffix: ElevatedButton(
-            child: const Text("COMMIT RUNNING"),
-            onPressed: () {
-              DateTime? dateTime = DateTime.tryParse(dateController.text);
-              int? runningDistance = int.tryParse(runnningController.text);
-              if (dateTime != null && runningDistance != null) {
-                tokenManager.runningMapDatasets[dateTime] = runningDistance;
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text("Invalid input datetime or running distance!"),
+        padding:
+            const EdgeInsets.only(left: 16, right: 16, top: 8.0, bottom: 8.0),
+        child: Row(
+          children: <Widget>[
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(width: 1, color: Colors.black12)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  // Minus
+                  IconButton(
+                    padding: const EdgeInsets.all(0),
+                    icon: const Icon(Icons.remove),
+                    onPressed: (() {
+                      if (runningController.text == "") {
+                        runningController.text = "0";
+                      } else if (runningController.text == "0") {
+                      } else {
+                        runningController.text =
+                            (int.parse(runningController.text) - 1).toString();
+                      }
+                    }),
                   ),
-                );
-              }
-            },
-          ),
-        ),
-      ),
-    );
+                  // Textfield
+                  Container(
+                    width: 80,
+                    decoration: const BoxDecoration(
+                        border: Border(
+                            left: BorderSide(width: 1, color: Colors.black12),
+                            right:
+                                BorderSide(width: 1, color: Colors.black12))),
+                    child: TextField(
+                      controller: runningController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 20),
+                      enableInteractiveSelection: false,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.only(
+                            left: 0, top: 2, bottom: 2, right: 0),
+                        border: OutlineInputBorder(
+                          gapPadding: 0,
+                          borderSide: BorderSide(
+                            width: 0,
+                            style: BorderStyle.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Plus
+                  IconButton(
+                    padding: const EdgeInsets.all(0),
+                    icon: const Icon(Icons.add),
+                    onPressed: (() {
+                      if (runningController.text == "") {
+                        runningController.text = "1";
+                      } else {
+                        runningController.text =
+                            (int.parse(runningController.text) + 1).toString();
+                      }
+                    }),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8),
+              child: ElevatedButton(
+                child: const Text("COMMIT RUNNING"),
+                onPressed: () {
+                  DateTime? dateTime = DateTime.tryParse(dateController.text);
+                  int? runningDistance = int.tryParse(runningController.text);
+                  if (dateTime != null && runningDistance != null) {
+                    tokenManager.runningMapDatasets[dateTime] = runningDistance;
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("Invalid input datetime or running distance!"),
+                      ),
+                    );
+                  }
+                },
+              ),
+            )
+          ],
+        ));
   }
 
   // ignore: non_constant_identifier_names
@@ -267,7 +327,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
   void dispose() {
     super.dispose();
     dateController.dispose();
-    runnningController.dispose();
+    runningController.dispose();
   }
 
   @override
@@ -315,16 +375,16 @@ class _MyHeatMapState extends State<MyHeatMap> {
                     setState(() {
                       dateController.text =
                           "${value.year}-${value.month.toString().padLeft(2, "0")}-${value.day.toString().padLeft(2, "0")}";
-                      int heat = tokenManager.runningMapDatasets[
+                      int distance = tokenManager.runningMapDatasets[
                               DateTime.parse(dateController.text)] ??
                           1;
-                      runnningController.text = heat.toString();
+                      runningController.text = distance.toString();
                     });
                   },
                 ),
               ),
             ),
-            RunningTextField(),
+            RunningInputField(),
             Text(
               " 📰累计阅读论文：${tokenManager.readingCount()}",
               textAlign: TextAlign.left,
