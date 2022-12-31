@@ -35,6 +35,22 @@ class TokenManager {
 
   TokenManager(this.runningMapDatasets, this.readingMapDatasets);
 
+  int runningCount() {
+    int count = 0;
+    runningMapDatasets.forEach((key, value) {
+      count += value;
+    });
+    return count;
+  }
+
+  int readingCount() {
+    int count = 0;
+    readingMapDatasets.forEach((key, value) {
+      count += value.length;
+    });
+    return count;
+  }
+
   Map<DateTime, int> readingCountMapDatasets() {
     Map<DateTime, int> readingCountMapDatasets = {};
 
@@ -70,7 +86,7 @@ class TokenManager {
           // NOTE: it can not in a situation of all 0
           runningMapDatasets[dateTime] = token.running;
         }
-        if (token.reading.length > 0) {
+        if (token.reading.isNotEmpty) {
           // NOTE: it can not in a situation of all 0
           readingMapDatasets[dateTime] = token.reading;
         }
@@ -119,16 +135,20 @@ class _MyHeatMapState extends State<MyHeatMap> {
 
   // ignore: non_constant_identifier_names
   Widget DateTextField() {
+    DateTime now = DateTime.now();
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16.0),
       child: TextField(
         controller: dateController,
+        autofocus: true,
         decoration: InputDecoration(
           enabledBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Color(0xffe7e7e7), width: 1.0)),
           focusedBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Color(0xFF20bca4), width: 1.0)),
-          hintText: "YYYY-MM-DD",
+          labelText: "YYYY-MM-DD",
+          hintText:
+              "${now.year}-${now.month.toString().padLeft(2, "0")}-${now.day.toString().padLeft(2, "0")}",
           hintStyle: const TextStyle(color: Colors.grey),
           isDense: true,
           suffix: ElevatedButton(
@@ -267,8 +287,14 @@ class _MyHeatMapState extends State<MyHeatMap> {
       ),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DateTextField(),
+            Text(
+              " 🏃‍累计跑步（公里）：${tokenManager.runningCount()}",
+              textAlign: TextAlign.left,
+              textScaleFactor: 2,
+            ),
             Card(
               margin: const EdgeInsets.all(10),
               elevation: 10,
@@ -299,6 +325,11 @@ class _MyHeatMapState extends State<MyHeatMap> {
               ),
             ),
             RunningTextField(),
+            Text(
+              " 📰累计阅读论文：${tokenManager.readingCount()}",
+              textAlign: TextAlign.left,
+              textScaleFactor: 2,
+            ),
             Card(
               margin: const EdgeInsets.all(10),
               elevation: 10,
