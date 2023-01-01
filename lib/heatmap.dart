@@ -1,9 +1,56 @@
 // ignore_for_file: unnecessary_brace_in_string_interps
 
 import "package:flutter/material.dart";
+import "package:flutter/rendering.dart";
 import "package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart";
 import "dart:convert";
 import "dart:io";
+
+// from https://zhuanlan.zhihu.com/p/350146779
+class FixedSizeGridDelegate extends SliverGridDelegate {
+  final double width;
+  final double height;
+  final double mainAxisSpacing;
+  final double minCrossAxisSpacing;
+
+  FixedSizeGridDelegate(
+    this.width,
+    this.height, {
+    this.mainAxisSpacing = 0.0,
+    this.minCrossAxisSpacing = 0.0,
+  });
+
+  @override
+  SliverGridLayout getLayout(SliverConstraints constraints) {
+    int crossAxisCount = constraints.crossAxisExtent ~/ width;
+    double crossAxisSpacing =
+        (constraints.crossAxisExtent - width * crossAxisCount) /
+            (crossAxisCount - 1);
+
+    while (crossAxisSpacing < minCrossAxisSpacing) {
+      crossAxisCount -= 1;
+      crossAxisSpacing =
+          (constraints.crossAxisExtent - width * crossAxisCount) /
+              (crossAxisCount - 1);
+    }
+
+    return SliverGridRegularTileLayout(
+      crossAxisCount: crossAxisCount,
+      mainAxisStride: height + mainAxisSpacing,
+      crossAxisStride: width + crossAxisSpacing,
+      childMainAxisExtent: height,
+      childCrossAxisExtent: width,
+      reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
+    );
+  }
+
+  @override
+  bool shouldRelayout(FixedSizeGridDelegate oldDelegate) {
+    return oldDelegate.width != width ||
+        oldDelegate.height != height ||
+        oldDelegate.mainAxisSpacing != mainAxisSpacing;
+  }
+}
 
 class MyHeatMap extends StatefulWidget {
   const MyHeatMap({super.key});
@@ -62,18 +109,19 @@ class _MyHeatMapState extends State<MyHeatMap> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                " 🏃‍累计跑步（公里）：${runningCount}",
+                "🏃‍累计跑步（公里）：${runningCount}",
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
               ),
             ),
             Card(
-              margin: const EdgeInsets.all(10),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               elevation: 10,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: HeatMap(
                   borderRadius: 2,
                   margin: const EdgeInsets.all(1.2),
@@ -92,18 +140,19 @@ class _MyHeatMapState extends State<MyHeatMap> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                " 📰累计阅读论文：${paperCount}",
+                "📰累计阅读论文：${paperCount}",
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
               ),
             ),
             Card(
-              margin: const EdgeInsets.all(10),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               elevation: 10,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: HeatMap(
                   borderRadius: 2,
                   margin: const EdgeInsets.all(1.2),
@@ -122,43 +171,49 @@ class _MyHeatMapState extends State<MyHeatMap> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                " 📘累计阅读书籍：${bookCount}",
+                "📘累计阅读书籍：${bookCount}",
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
               ),
             ),
-            SizedBox(
-              height: 300,
+            const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Divider()),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 300),
               child: ListView.builder(
                 itemCount: bookDatabase.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(bookDatabase.keys.toList()[index]),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16),
+                        child: Text(
+                          textAlign: TextAlign.left,
+                          bookDatabase.keys.toList()[index],
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       GridView.builder(
                         shrinkWrap: true,
                         itemCount: bookDatabase.values.toList()[index].length,
                         physics: const NeverScrollableScrollPhysics(),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 6,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 0.7,
-                        ),
+                        gridDelegate: FixedSizeGridDelegate(120, 200,
+                            mainAxisSpacing: 10),
                         itemBuilder: (BuildContext context, int bookIndex) {
                           return Column(
                             children: <Widget>[
                               SizedBox(
                                 width: MediaQuery.of(context).size.width,
                                 child: FadeInImage.assetNetwork(
-                                  height: 130,
                                   fit: BoxFit.fill,
                                   placeholder:
                                       "assets/images/bookPlaceholder.png",
@@ -173,23 +228,8 @@ class _MyHeatMapState extends State<MyHeatMap> {
                                   }),
                                 ),
                               ),
-                              // Card(
-                              //   child: FadeInImage.assetNetwork(
-                              //     fit: BoxFit.cover,
-                              //     placeholder:
-                              //         "assets/images/bookPlaceholder.png",
-                              //     image: bookDatabase.values.toList()[index]
-                              //         [bookIndex]["file"],
-                              //     imageErrorBuilder:
-                              //         ((context, error, stackTrace) {
-                              //       return Image.asset(
-                              //           fit: BoxFit.fill,
-                              //           "assets/images/bookPlaceholder.png");
-                              //     }),
-                              //   ),
-                              // ),
                               SizedBox(
-                                width: 80,
+                                width: 120,
                                 child: Text(
                                   bookDatabase.values.toList()[index][bookIndex]
                                       ["title"],
@@ -205,7 +245,10 @@ class _MyHeatMapState extends State<MyHeatMap> {
                             ],
                           );
                         },
-                      )
+                      ),
+                      const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Divider()),
                     ],
                   );
                 },
