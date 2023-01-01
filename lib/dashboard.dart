@@ -32,7 +32,8 @@ class CalendarStorage {
   Future<File> writeDatabase(Map<String, dynamic> database) async {
     final File jsonFile = await _localFile;
     Map<String, dynamic> exportJson = database;
-    String jsonString = jsonEncode(exportJson);
+    var encoder = JsonEncoder.withIndent(" " * 4);
+    String jsonString = encoder.convert(exportJson);
     return jsonFile.writeAsString(jsonString);
   }
 }
