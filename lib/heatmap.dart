@@ -112,6 +112,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
                 "🏃‍累计跑步（公里）：${runningCount}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
               ),
@@ -143,6 +144,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
                 "📰累计阅读论文：${paperCount}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
               ),
@@ -174,6 +176,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
                 "📘累计阅读书籍：${bookCount}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
               ),

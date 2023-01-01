@@ -244,7 +244,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     final FocusNode _focusNode = FocusNode();
     final GlobalKey _autocompleteKey = GlobalKey();
     AlertDialog dialog = AlertDialog(
-      title: const Text("添加阅读书籍"),
+      title:
+          const Text("添加阅读书籍", style: TextStyle(fontWeight: FontWeight.bold)),
       content: SizedBox(
         width: 200,
         height: 200,
@@ -264,7 +265,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                   style: const TextStyle(color: Colors.black87, fontSize: 18),
                   decoration: const InputDecoration(
                     labelText: "书本种类",
-                    labelStyle: TextStyle(color: Colors.grey),
+                    labelStyle: TextStyle(
+                        color: Colors.grey, fontWeight: FontWeight.bold),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.green),
                     ),
@@ -332,7 +334,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               cursorColor: Colors.lightGreen,
               decoration: const InputDecoration(
                 labelText: "书本名称",
-                labelStyle: TextStyle(color: Colors.grey),
+                labelStyle:
+                    TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.green),
                 ),
@@ -347,7 +350,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               cursorColor: Colors.lightGreen,
               decoration: const InputDecoration(
                 labelText: "封面链接",
-                labelStyle: TextStyle(color: Colors.grey),
+                labelStyle:
+                    TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.green),
                 ),
@@ -430,6 +434,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   Widget ReadingList() {
     // ignore: no_leading_underscores_for_local_identifiers
     Future<void> _renameDialog(BuildContext context, int index) async {
+      tempReadingController.text =
+          tokenDatabase[formatter.format(_focusedDay)]["reading"][index];
       // Create AlertDialog
       AlertDialog dialog = AlertDialog(
         title: const Text("重命名文章"),
@@ -456,7 +462,6 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                   () {
                     tokenDatabase[formatter.format(_focusedDay)]["reading"]
                         [index] = tempReadingController.text;
-                    tempReadingController.text = "";
                     Navigator.of(context).pop(true);
                   },
                 );
@@ -466,7 +471,6 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           ElevatedButton(
             child: const Text("退出"),
             onPressed: () {
-              tempReadingController.text = "";
               Navigator.of(context).pop(false);
             },
           ),
@@ -486,6 +490,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
         child: ListTile(
           title: Text(
             title,
+            textAlign: TextAlign.left,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 18),
           ),
           trailing: Wrap(
@@ -647,6 +653,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 children: <Widget>[
                   Text(
                     " 🏃‍今日跑步（公里）：${(tokenDatabase[formatter.format(_focusedDay)] == null) ? 0 : tokenDatabase[formatter.format(_focusedDay)]["running"] ?? 0}",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
                   ),
@@ -661,6 +668,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 children: <Widget>[
                   Text(
                     " 📰今日阅读论文：${(tokenDatabase[formatter.format(_focusedDay)] == null) ? 0 : tokenDatabase[formatter.format(_focusedDay)]["reading"].length ?? 0}",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
                   ),
