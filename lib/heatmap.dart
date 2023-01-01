@@ -179,8 +179,9 @@ class _MyHeatMapState extends State<MyHeatMap> {
               ),
             ),
             const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                child: Divider()),
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Divider(),
+            ),
             Container(
               constraints: const BoxConstraints(maxHeight: 300),
               child: ListView.builder(
@@ -212,7 +213,8 @@ class _MyHeatMapState extends State<MyHeatMap> {
                           return Column(
                             children: <Widget>[
                               SizedBox(
-                                width: MediaQuery.of(context).size.width,
+                                width: 120,
+                                height: 177,
                                 child: FadeInImage.assetNetwork(
                                   fit: BoxFit.fill,
                                   placeholder:
@@ -247,8 +249,9 @@ class _MyHeatMapState extends State<MyHeatMap> {
                         },
                       ),
                       const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Divider()),
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Divider(),
+                      ),
                     ],
                   );
                 },

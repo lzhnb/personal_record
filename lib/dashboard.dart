@@ -57,6 +57,9 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   final TextEditingController runningController = TextEditingController();
   final TextEditingController readingController = TextEditingController();
   final TextEditingController tempReadingController = TextEditingController();
+  final TextEditingController bookCategoryController = TextEditingController();
+  final TextEditingController bookTitleController = TextEditingController();
+  final TextEditingController bookFileController = TextEditingController();
 
   // parse json
   final DateFormat formatter = DateFormat("yyyy-MM-dd");
@@ -71,15 +74,15 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   // ignore: non_constant_identifier_names
   Widget RunningInputField() {
     return Padding(
-      padding:
-          const EdgeInsets.only(left: 16, right: 16, top: 8.0, bottom: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.0),
       child: Row(
         children: <Widget>[
           Container(
             height: 40,
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(width: 1, color: Colors.black12)),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(width: 1, color: Colors.black12),
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -101,9 +104,11 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 Container(
                   width: 80,
                   decoration: const BoxDecoration(
-                      border: Border(
-                          left: BorderSide(width: 1, color: Colors.black12),
-                          right: BorderSide(width: 1, color: Colors.black12))),
+                    border: Border(
+                      left: BorderSide(width: 1, color: Colors.black12),
+                      right: BorderSide(width: 1, color: Colors.black12),
+                    ),
+                  ),
                   child: TextField(
                     controller: runningController,
                     keyboardType: TextInputType.number,
@@ -111,8 +116,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                     style: const TextStyle(fontSize: 20),
                     enableInteractiveSelection: false,
                     decoration: const InputDecoration(
-                      contentPadding:
-                          EdgeInsets.only(left: 0, top: 2, bottom: 2, right: 0),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 2),
                       border: OutlineInputBorder(
                         gapPadding: 0,
                         borderSide: BorderSide(
@@ -140,11 +144,12 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 8, right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: ElevatedButton(
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(
-                    const Color.fromRGBO(255, 144, 0, 1.0)),
+                  const Color.fromRGBO(255, 144, 0, 1.0),
+                ),
               ),
               child: const Text("COMMIT RUNNING"),
               onPressed: () {
@@ -183,21 +188,24 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   // ignore: non_constant_identifier_names
   Widget ReadingTextField() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8.0),
       child: TextField(
         controller: readingController,
         decoration: InputDecoration(
           enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xffe7e7e7), width: 1.0)),
+            borderSide: BorderSide(color: Color(0xffe7e7e7), width: 1.0),
+          ),
           focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF20bca4), width: 1.0)),
+            borderSide: BorderSide(color: Colors.grey, width: 1.0),
+          ),
           hintText: "Paper Title",
           hintStyle: const TextStyle(color: Colors.grey),
           isDense: true,
           suffix: ElevatedButton(
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(
-                  const Color.fromRGBO(218, 65, 64, 1.0)),
+                const Color.fromRGBO(218, 65, 64, 1.0),
+              ),
             ),
             child: const Text("COMMIT READING"),
             onPressed: () {
@@ -231,6 +239,193 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     );
   }
 
+  Future<void> _addBook(BuildContext context) async {
+    // Create AlertDialog
+    final FocusNode _focusNode = FocusNode();
+    final GlobalKey _autocompleteKey = GlobalKey();
+    AlertDialog dialog = AlertDialog(
+      title: const Text("添加阅读书籍"),
+      content: SizedBox(
+        width: 200,
+        height: 200,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            RawAutocomplete<String>(
+              key: _autocompleteKey,
+              focusNode: _focusNode,
+              textEditingController: bookCategoryController,
+              fieldViewBuilder: (BuildContext context,
+                  TextEditingController textEditingController,
+                  FocusNode focusNode,
+                  VoidCallback onFieldSubmitted) {
+                return TextFormField(
+                  cursorColor: Colors.lightGreen,
+                  style: const TextStyle(color: Colors.black87, fontSize: 18),
+                  decoration: const InputDecoration(
+                    labelText: "书本种类",
+                    labelStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.green),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.green),
+                    ),
+                  ),
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  onFieldSubmitted: (String value) {
+                    onFieldSubmitted();
+                  },
+                );
+              },
+              optionsBuilder: ((TextEditingValue textEditingValue) {
+                // ignore: unnecessary_null_comparison
+                if (textEditingValue.text == "" || textEditingValue == null) {
+                  return bookDatabase.keys.toList();
+                }
+                return bookDatabase.keys.toList().where((String category) {
+                  return category.startsWith(textEditingValue.text);
+                }).toList();
+              }),
+              optionsViewBuilder: (BuildContext context,
+                  AutocompleteOnSelected<String> onSelected,
+                  Iterable<String> options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: SizedBox(
+                      height: 150,
+                      width: 200,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(8.0),
+                        itemCount: options.length,
+                        itemBuilder: ((BuildContext context, int index) {
+                          final String option = options.elementAt(index);
+                          return Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  onSelected(option);
+                                },
+                                child: ListTile(
+                                  title: Text(option),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: Divider(),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            TextField(
+              controller: bookTitleController,
+              style: const TextStyle(color: Colors.black87, fontSize: 18),
+              cursorColor: Colors.lightGreen,
+              decoration: const InputDecoration(
+                labelText: "书本名称",
+                labelStyle: TextStyle(color: Colors.grey),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.green),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.green),
+                ),
+              ),
+            ),
+            TextField(
+              controller: bookFileController,
+              style: const TextStyle(color: Colors.black87, fontSize: 18),
+              cursorColor: Colors.lightGreen,
+              decoration: const InputDecoration(
+                labelText: "封面链接",
+                labelStyle: TextStyle(color: Colors.grey),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.green),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.green),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(
+                const Color.fromRGBO(101, 187, 92, 1.0)),
+          ),
+          child: const Text("添加"),
+          onPressed: () {
+            if (bookCategoryController.text == "" ||
+                bookTitleController.text == "") {
+              bookCategoryController.text = "";
+              bookTitleController.text = "";
+              bookFileController.text = "";
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Invalid input book category of title!"),
+                ),
+              );
+              Navigator.of(context).pop(false);
+            } else {
+              final String category = bookCategoryController.text;
+              final String title = bookTitleController.text;
+              final String file = bookFileController.text;
+              setState(() {
+                if (bookDatabase.containsKey(category)) {
+                  bookDatabase[category].add({"title": title, "file": file});
+                } else {
+                  bookDatabase[category] = [
+                    {
+                      "title": title,
+                      "file": file,
+                    }
+                  ];
+                }
+                updateDatabase(
+                    {"tokens": tokenDatabase, "books": bookDatabase});
+              });
+              bookCategoryController.text = "";
+              bookTitleController.text = "";
+              bookFileController.text = "";
+              Navigator.of(context).pop(true);
+            }
+          },
+        ),
+        ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(
+                const Color.fromRGBO(101, 187, 92, 1.0)),
+          ),
+          child: const Text("退出"),
+          onPressed: () {
+            bookCategoryController.text = "";
+            bookTitleController.text = "";
+            bookFileController.text = "";
+            Navigator.of(context).pop(false);
+          },
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return dialog;
+      },
+    );
+  }
+
   // ignore: non_constant_identifier_names
   Widget ReadingList() {
     // ignore: no_leading_underscores_for_local_identifiers
@@ -242,42 +437,47 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           controller: tempReadingController,
           style: const TextStyle(color: Colors.black87),
           decoration: const InputDecoration(
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue),
-              )),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
         ),
         actions: [
           ElevatedButton(
-              child: const Text("确认"),
-              onPressed: () {
-                if (tempReadingController.text == "") {
-                  Navigator.of(context).pop(false);
-                } else {
-                  setState(
-                    () {
-                      tokenDatabase[formatter.format(_focusedDay)]["reading"]
-                          [index] = tempReadingController.text;
-                      tempReadingController.text = "";
-                      Navigator.of(context).pop(true);
-                    },
-                  );
-                }
-              }),
-          ElevatedButton(
-              child: const Text("退出"),
-              onPressed: () {
+            child: const Text("确认"),
+            onPressed: () {
+              if (tempReadingController.text == "") {
                 Navigator.of(context).pop(false);
-              }),
+              } else {
+                setState(
+                  () {
+                    tokenDatabase[formatter.format(_focusedDay)]["reading"]
+                        [index] = tempReadingController.text;
+                    tempReadingController.text = "";
+                    Navigator.of(context).pop(true);
+                  },
+                );
+              }
+            },
+          ),
+          ElevatedButton(
+            child: const Text("退出"),
+            onPressed: () {
+              tempReadingController.text = "";
+              Navigator.of(context).pop(false);
+            },
+          ),
         ],
       );
       showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return dialog;
-          });
+        context: context,
+        builder: (BuildContext context) {
+          return dialog;
+        },
+      );
     }
 
     // ignore: non_constant_identifier_names
@@ -344,18 +544,27 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   @override
   void initState() {
     super.initState();
-    widget.calendarStorage.parseDatabase().then(((jsonContents) {
-      setState(() {
-        tokenDatabase = jsonContents["tokens"];
-        bookDatabase = jsonContents["books"];
-      });
-    }));
+    widget.calendarStorage.parseDatabase().then(
+      ((jsonContents) {
+        setState(
+          () {
+            tokenDatabase = jsonContents["tokens"];
+            bookDatabase = jsonContents["books"];
+          },
+        );
+      }),
+    );
   }
 
   @override
   void dispose() {
     super.dispose();
     runningController.dispose();
+    readingController.dispose();
+    tempReadingController.dispose();
+    bookCategoryController.dispose();
+    bookTitleController.dispose();
+    bookFileController.dispose();
   }
 
   @override
@@ -465,7 +674,9 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(101, 187, 92, 1.0),
-        onPressed: () => Navigator.of(context).pushNamed("/HeatMap"),
+        onPressed: () {
+          _addBook(context);
+        },
         tooltip: "Add Read Book",
         child: const Icon(Icons.book),
       ),
