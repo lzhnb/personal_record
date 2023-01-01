@@ -102,7 +102,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(94, 161, 254, 1.0),
-        title: const Text("Calendar Heatmap && Book Gallary"),
+        title: const Text("Summary"),
       ),
       body: SafeArea(
         child: Column(

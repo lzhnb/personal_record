@@ -362,8 +362,27 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(101, 187, 92, 1.0),
+        backgroundColor: const Color.fromRGBO(94, 161, 254, 1.0),
         title: const Text("Calendar Dashboard"),
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.white),
+              ),
+              onPressed: () => Navigator.of(context).pushNamed("/HeatMap"),
+              child: const Text(
+                "Summary",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromRGBO(94, 161, 254, 1.0),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -445,9 +464,10 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color.fromRGBO(94, 161, 254, 1.0),
+        backgroundColor: const Color.fromRGBO(101, 187, 92, 1.0),
         onPressed: () => Navigator.of(context).pushNamed("/HeatMap"),
-        child: const Icon(Icons.visibility),
+        tooltip: "Add Read Book",
+        child: const Icon(Icons.book),
       ),
     );
   }
