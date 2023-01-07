@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import './heatmap_month_text.dart';
 import './heatmap_column.dart';
-import '../data/heatmap_color_mode.dart';
 import '../util/datasets_util.dart';
 import '../util/date_util.dart';
 import './heatmap_week_text.dart';
@@ -48,16 +47,6 @@ class HeatMapPage extends StatelessWidget {
   /// The text color value of every blocks.
   final Color? textColor;
 
-  /// ColorMode changes the color mode of blocks.
-  ///
-  /// [ColorMode.opacity] requires just one colorsets value and changes color
-  /// dynamically based on hightest value of [datasets].
-  /// [ColorMode.color] changes colors based on [colorsets] thresholds key value.
-  final ColorMode colorMode;
-
-  /// The colorsets which give the color value for its thresholds key value.
-  ///
-  /// Be aware that first Color is the maximum value if [ColorMode] is [ColorMode.opacity].
   final Map<int, Color>? colorsets;
 
   /// The double value of every block's borderRadius.
@@ -77,7 +66,6 @@ class HeatMapPage extends StatelessWidget {
 
   HeatMapPage({
     Key? key,
-    required this.colorMode,
     required this.startDate,
     required this.endDate,
     this.size,
@@ -105,6 +93,7 @@ class HeatMapPage extends StatelessWidget {
         datePos <= _dateDifferent;
         datePos += 7) {
       // Get first day of week by adding cursor's value to startDate.
+      // ignore: no_leading_underscores_for_local_identifiers
       DateTime _firstDay = DateUtil.changeDay(startDate, datePos);
 
       columns.add(HeatMapColumn(
@@ -117,7 +106,6 @@ class HeatMapPage extends StatelessWidget {
         endDate: datePos <= _dateDifferent - 7
             ? DateUtil.changeDay(startDate, datePos + 6)
             : endDate,
-        colorMode: colorMode,
         numDays: min(endDate.difference(_firstDay).inDays + 1, 7),
         size: size,
         fontSize: fontSize,

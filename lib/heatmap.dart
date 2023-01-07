@@ -5,7 +5,6 @@ import "package:flutter/rendering.dart";
 import "dart:convert";
 import "dart:io";
 import "src/heatmap/heatmap.dart";
-import "src/heatmap/data/heatmap_color_mode.dart";
 
 // from https://zhuanlan.zhihu.com/p/350146779
 class FixedSizeGridDelegate extends SliverGridDelegate {
@@ -134,7 +133,6 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   startDate: DateTime(2023, 1, 1),
                   endDate: DateTime(2023, 12, 31),
                   textColor: Colors.black,
-                  colorMode: ColorMode.opacity,
                   colorsets: const {
                     1: Color.fromRGBO(255, 144, 0, 1.0),
                   },
@@ -166,7 +164,6 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   startDate: DateTime(2023, 1, 1),
                   endDate: DateTime(2023, 12, 31),
                   textColor: Colors.black,
-                  colorMode: ColorMode.opacity,
                   colorsets: const {
                     1: Color.fromRGBO(218, 65, 64, 1.0),
                   },

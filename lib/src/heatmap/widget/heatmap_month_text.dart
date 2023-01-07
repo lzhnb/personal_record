@@ -33,6 +33,7 @@ class HeatMapMonthText extends StatelessWidget {
     List<Widget> items = [];
 
     // Set true if previous week was the first day of the month.
+    // ignore: no_leading_underscores_for_local_identifiers
     bool _write = false;
 
     // Loop until check every given weeks.
@@ -46,7 +47,9 @@ class HeatMapMonthText extends StatelessWidget {
         // Add Text without width margin if first week is end of the month.
         // Otherwise, add Text with width margin.
         items.add(
-          firstDayInfos!.length == 1 || (label == 0 && firstDayInfos![label] != firstDayInfos![label + 1])
+          firstDayInfos!.length == 1 ||
+                  (label == 0 &&
+                      firstDayInfos![label] != firstDayInfos![label + 1])
               ? _renderText(DateUtil.SHORT_MONTH_LABEL[firstDayInfos![label]])
               : Container(
                   width: (((size ?? 20) + (margin?.right ?? 2)) * 2),

@@ -241,7 +241,9 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   Future<void> _addBook(BuildContext context) async {
     // Create AlertDialog
+    // ignore: no_leading_underscores_for_local_identifiers
     final FocusNode _focusNode = FocusNode();
+    // ignore: no_leading_underscores_for_local_identifiers
     final GlobalKey _autocompleteKey = GlobalKey();
     AlertDialog dialog = AlertDialog(
       title:

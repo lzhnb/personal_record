@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import './widget/heatmap_page.dart';
 import './widget/heatmap_color_tip.dart';
-import './data/heatmap_color_mode.dart';
 import './util/date_util.dart';
 
 class HeatMap extends StatefulWidget {
@@ -34,19 +33,7 @@ class HeatMap extends StatefulWidget {
   final double? fontSize;
 
   /// The colorsets which give the color value for its thresholds key value.
-  ///
-  /// Be aware that first Color is the maximum value if [ColorMode] is [ColorMode.opacity].
-  /// Also colorsets must have at least one color.
   final Map<int, Color> colorsets;
-
-  /// ColorMode changes the color mode of blocks.
-  ///
-  /// [ColorMode.opacity] requires just one colorsets value and changes color
-  /// dynamically based on hightest value of [datasets].
-  /// [ColorMode.color] changes colors based on [colorsets] thresholds key value.
-  ///
-  /// Default value is [ColorMode.opacity].
-  final ColorMode colorMode;
 
   /// Function that will be called when a block is clicked.
   ///
@@ -90,7 +77,6 @@ class HeatMap extends StatefulWidget {
   const HeatMap({
     Key? key,
     required this.colorsets,
-    this.colorMode = ColorMode.opacity,
     this.startDate,
     this.endDate,
     this.textColor,
@@ -135,7 +121,6 @@ class _HeatMap extends State<HeatMap> {
           endDate: widget.endDate ?? DateTime.now(),
           startDate: widget.startDate ??
               DateUtil.oneYearBefore(widget.endDate ?? DateTime.now()),
-          colorMode: widget.colorMode,
           size: widget.size,
           fontSize: widget.fontSize,
           datasets: widget.datasets,
@@ -151,7 +136,6 @@ class _HeatMap extends State<HeatMap> {
         // Show HeatMapColorTip if showColorTip is true.
         if (widget.showColorTip == true)
           HeatMapColorTip(
-            colorMode: widget.colorMode,
             colorsets: widget.colorsets,
             leftWidget: widget.colorTipHelper?[0],
             rightWidget: widget.colorTipHelper?[1],

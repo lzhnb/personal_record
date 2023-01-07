@@ -1,4 +1,0 @@
-enum ColorMode {
-  opacity,
-  color,
-}

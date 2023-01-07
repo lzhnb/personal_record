@@ -1,6 +1,8 @@
 class DateUtil {
+  // ignore: constant_identifier_names
   static const int DAYS_IN_WEEK = 7;
 
+  // ignore: constant_identifier_names
   static const List<String> MONTH_LABEL = [
     '',
     'January',
@@ -17,6 +19,7 @@ class DateUtil {
     'December',
   ];
 
+  // ignore: constant_identifier_names
   static const List<String> SHORT_MONTH_LABEL = [
     '',
     'Jan',
@@ -33,6 +36,7 @@ class DateUtil {
     'Dec',
   ];
 
+  // ignore: constant_identifier_names
   static const List<String> WEEK_LABEL = [
     '',
     'Sun',
@@ -59,10 +63,14 @@ class DateUtil {
   /// Separate [referenceDate]'s month to List of every weeks.
   static List<Map<DateTime, DateTime>> separatedMonth(
       final DateTime referenceDate) {
+    // ignore: no_leading_underscores_for_local_identifiers
     DateTime _startDate = startDayOfMonth(referenceDate);
+    // ignore: no_leading_underscores_for_local_identifiers
     DateTime _endDate = DateTime(_startDate.year, _startDate.month,
         _startDate.day + DAYS_IN_WEEK - _startDate.weekday % DAYS_IN_WEEK - 1);
+    // ignore: no_leading_underscores_for_local_identifiers
     DateTime _finalDate = endDayOfMonth(referenceDate);
+    // ignore: no_leading_underscores_for_local_identifiers
     List<Map<DateTime, DateTime>> _savedMonth = [];
 
     while (_startDate.isBefore(_finalDate) || _startDate == _finalDate) {

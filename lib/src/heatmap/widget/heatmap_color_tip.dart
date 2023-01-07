@@ -1,7 +1,4 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
-import '../data/heatmap_color_mode.dart';
 import '../data/heatmap_color.dart';
 
 class HeatMapColorTip extends StatelessWidget {
@@ -9,15 +6,7 @@ class HeatMapColorTip extends StatelessWidget {
   final int _defaultLength = 7;
 
   /// The colorsets which give the color value for its thresholds key value.
-  ///
-  /// Be aware that first Color is the maximum value if [ColorMode] is [ColorMode.opacity].
   final Map<int, Color>? colorsets;
-
-  /// ColorMode changes the color mode of blocks.
-  ///
-  /// [ColorMode.opacity] requires just one colorsets value and changes color
-  /// [ColorMode.color] changes colors based on [colorsets] thresholds key value.
-  final ColorMode colorMode;
 
   /// The widget which shows left side of [HeatMapColorTip].
   ///
@@ -37,7 +26,6 @@ class HeatMapColorTip extends StatelessWidget {
 
   const HeatMapColorTip({
     Key? key,
-    required this.colorMode,
     this.colorsets,
     this.leftWidget,
     this.rightWidget,
@@ -46,27 +34,7 @@ class HeatMapColorTip extends StatelessWidget {
   }) : super(key: key);
 
   /// It returns the List of tip container.
-  ///
-  /// If [ColorMode.color], call [_heatmapListColor]
-  /// If [ColorMode.opacity], call [_heatmapListOpacity]
-  List<Widget> _heatmapList() => colorMode == ColorMode.color
-      ? _heatmapListColor()
-      : _heatmapListOpacity();
-
-  /// Evenly show every colors from lowest to highest.
-  List<Widget> _heatmapListColor() {
-    List<Widget> children = [];
-    SplayTreeMap sortedColorset =
-        SplayTreeMap.from(colorsets ?? {}, (a, b) => a > b ? 1 : -1);
-
-    for (int i = 0; i < (containerCount ?? _defaultLength); i++) {
-      children.add(_tipContainer(sortedColorset.values.elementAt(
-          (sortedColorset.length / (containerCount ?? _defaultLength) * i)
-              .floor())));
-    }
-
-    return children;
-  }
+  List<Widget> _heatmapList() => _heatmapListOpacity();
 
   /// Evenly show every colors from transparent to non-transparent.
   List<Widget> _heatmapListOpacity() {
