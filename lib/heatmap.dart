@@ -2,9 +2,10 @@
 
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
-import "package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart";
 import "dart:convert";
 import "dart:io";
+import "src/heatmap/heatmap.dart";
+import "src/heatmap/data/heatmap_color_mode.dart";
 
 // from https://zhuanlan.zhihu.com/p/350146779
 class FixedSizeGridDelegate extends SliverGridDelegate {
