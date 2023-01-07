@@ -1,11 +1,10 @@
-import 'dart:math';
+import "dart:math";
 
-import 'package:flutter/material.dart';
-import './heatmap_month_text.dart';
-import './heatmap_column.dart';
-import '../util/datasets_util.dart';
-import '../util/date_util.dart';
-import './heatmap_week_text.dart';
+import "package:flutter/material.dart";
+import "./heatmap_month_text.dart";
+import "./heatmap_column.dart";
+import "../util/date_util.dart";
+import "./heatmap_week_text.dart";
 
 class HeatMapPage extends StatelessWidget {
   /// List value of every sunday's month information.
@@ -38,6 +37,9 @@ class HeatMapPage extends StatelessWidget {
   /// The datasets which fill blocks based on its value.
   final Map<DateTime, int>? datasets;
 
+  /// The integer value of the maximum value for the [datasets].
+  final int? maxValue;
+
   /// The margin value for every block.
   final EdgeInsets? margin;
 
@@ -52,17 +54,10 @@ class HeatMapPage extends StatelessWidget {
   /// The double value of every block's borderRadius.
   final double? borderRadius;
 
-  /// The integer value of the maximum value for the [datasets].
-  ///
-  /// Get highest key value of filtered datasets using [DatasetsUtil.getMaxValue].
-  final int? maxValue;
-
   /// Function that will be called when a block is clicked.
   ///
   /// Paratmeter gives clicked [DateTime] value.
   final Function(DateTime)? onClick;
-
-  final bool? showText;
 
   HeatMapPage({
     Key? key,
@@ -71,15 +66,14 @@ class HeatMapPage extends StatelessWidget {
     this.size,
     this.fontSize,
     this.datasets,
+    this.maxValue = 10,
     this.defaultColor,
     this.textColor,
     this.color,
     this.borderRadius,
     this.onClick,
     this.margin,
-    this.showText,
   })  : _dateDifferent = endDate.difference(startDate).inDays,
-        maxValue = DatasetsUtil.getMaxValue(datasets),
         super(key: key);
 
   /// Get [HeatMapColumn] from [startDate] to [endDate].
@@ -96,29 +90,30 @@ class HeatMapPage extends StatelessWidget {
       // ignore: no_leading_underscores_for_local_identifiers
       DateTime _firstDay = DateUtil.changeDay(startDate, datePos);
 
-      columns.add(HeatMapColumn(
-        // If last day is not saturday, week also includes future Date.
-        // So we have to make future day on last column blanck.
-        //
-        // To make empty space to future day, we have to pass this HeatMapPage's
-        // endDate to HeatMapColumn's endDate.
-        startDate: _firstDay,
-        endDate: datePos <= _dateDifferent - 7
-            ? DateUtil.changeDay(startDate, datePos + 6)
-            : endDate,
-        numDays: min(endDate.difference(_firstDay).inDays + 1, 7),
-        size: size,
-        fontSize: fontSize,
-        defaultColor: defaultColor,
-        color: color,
-        textColor: textColor,
-        borderRadius: borderRadius,
-        margin: margin,
-        maxValue: maxValue,
-        onClick: onClick,
-        datasets: datasets,
-        showText: showText,
-      ));
+      columns.add(
+        HeatMapColumn(
+          // If last day is not saturday, week also includes future Date.
+          // So we have to make future day on last column blanck.
+          //
+          // To make empty space to future day, we have to pass this HeatMapPage's
+          // endDate to HeatMapColumn's endDate.
+          startDate: _firstDay,
+          endDate: datePos <= _dateDifferent - 7
+              ? DateUtil.changeDay(startDate, datePos + 6)
+              : endDate,
+          numDays: min(endDate.difference(_firstDay).inDays + 1, 7),
+          size: size,
+          fontSize: fontSize,
+          defaultColor: defaultColor,
+          color: color,
+          textColor: textColor,
+          borderRadius: borderRadius,
+          margin: margin,
+          maxValue: maxValue,
+          onClick: onClick,
+          datasets: datasets,
+        ),
+      );
 
       // also add first day's month information to _firstDayInfos list.
       _firstDayInfos.add(_firstDay.month);

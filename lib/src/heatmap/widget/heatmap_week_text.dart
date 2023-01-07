@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import '../util/date_util.dart';
+import "package:flutter/material.dart";
+import "../util/date_util.dart";
 
 class HeatMapWeekText extends StatelessWidget {
   /// The margin value for correctly space between labels.

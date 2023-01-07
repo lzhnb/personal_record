@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
-import './heatmap_container.dart';
-import '../util/date_util.dart';
+import "dart:math";
+
+import "package:flutter/material.dart";
+import "./heatmap_container.dart";
+import "../util/date_util.dart";
 
 class HeatMapColumn extends StatelessWidget {
   /// The List widgets of [HeatMapContainer].
@@ -55,9 +57,6 @@ class HeatMapColumn extends StatelessWidget {
   /// The integer value of the maximum value for the highest value of the month.
   final int? maxValue;
 
-  /// Show day text in every blocks if the value is true.
-  final bool? showText;
-
   // The number of day blocks to draw. This should be seven for all but the
   // current week.
   final int numDays;
@@ -77,7 +76,6 @@ class HeatMapColumn extends StatelessWidget {
     this.color,
     this.onClick,
     this.maxValue,
-    this.showText,
   })  :
         // Init list.
         dayContainers = List.generate(
@@ -91,24 +89,29 @@ class HeatMapColumn extends StatelessWidget {
               borderRadius: borderRadius,
               margin: margin,
               onClick: onClick,
-              showText: showText,
               // If datasets has DateTime key which is equal to this HeatMapContainer's date,
               // we have to color the matched HeatMapContainer.
               //
               // If datasets is null or doesn't contains the equal DateTime value, send null.
-              selectedColor: datasets?.keys.contains(DateTime(
-                          startDate.year,
-                          startDate.month,
-                          startDate.day - startDate.weekday % 7 + i)) ??
+              selectedColor: datasets?.keys.contains(
+                        DateTime(startDate.year, startDate.month,
+                            startDate.day - startDate.weekday % 7 + i),
+                      ) ??
                       false
                   // Color and set opacity value to current day's datasets key
                   // devided by maxValue which is the maximum value of the month.
-                  ? color?.withOpacity((datasets?[DateTime(
-                              startDate.year,
-                              startDate.month,
-                              startDate.day + i - (startDate.weekday % 7))] ??
-                          1) /
-                      (maxValue ?? 1))
+                  ? color?.withOpacity(
+                      min(
+                          (datasets?[DateTime(
+                                      startDate.year,
+                                      startDate.month,
+                                      startDate.day +
+                                          i -
+                                          (startDate.weekday % 7))] ??
+                                  1) /
+                              (maxValue ?? 1),
+                          1.0),
+                    )
                   : null),
         ),
         // Fill emptySpace list only if given wek doesn't have 7 days.

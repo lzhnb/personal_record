@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import './widget/heatmap_page.dart';
-import './widget/heatmap_color_tip.dart';
-import './util/date_util.dart';
+import "package:flutter/material.dart";
+import "./widget/heatmap_page.dart";
+import "./widget/heatmap_color_tip.dart";
+import "./util/date_util.dart";
 
 class HeatMap extends StatefulWidget {
   /// The Date value of start day of heatmap.
@@ -19,6 +19,9 @@ class HeatMap extends StatefulWidget {
 
   /// The datasets which fill blocks based on its value.
   final Map<DateTime, int>? datasets;
+
+  /// The maximum of value.
+  final int? maxValue;
 
   /// The color value of every block's default color.
   final Color? defaultColor;
@@ -86,6 +89,7 @@ class HeatMap extends StatefulWidget {
     this.margin,
     this.borderRadius,
     this.datasets,
+    this.maxValue = 10,
     this.defaultColor,
     this.showText = false,
     this.showColorTip = true,
@@ -119,26 +123,28 @@ class _HeatMap extends State<HeatMap> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           // Heatmap Widget.
-          _scrollableHeatMap(HeatMapPage(
-            endDate: widget.endDate ?? DateTime.now(),
-            startDate: widget.startDate ??
-                DateUtil.oneYearBefore(widget.endDate ?? DateTime.now()),
-            size: widget.size,
-            fontSize: widget.fontSize,
-            datasets: widget.datasets,
-            defaultColor: widget.defaultColor,
-            textColor: widget.textColor,
-            color: widget.color,
-            borderRadius: widget.borderRadius,
-            onClick: widget.onClick,
-            margin: widget.margin,
-            showText: widget.showText,
-          )),
-
+          _scrollableHeatMap(
+            HeatMapPage(
+              endDate: widget.endDate ?? DateTime.now(),
+              startDate: widget.startDate ??
+                  DateUtil.oneYearBefore(widget.endDate ?? DateTime.now()),
+              size: widget.size,
+              fontSize: widget.fontSize,
+              datasets: widget.datasets,
+              maxValue: widget.maxValue,
+              defaultColor: widget.defaultColor,
+              textColor: widget.textColor,
+              color: widget.color,
+              borderRadius: widget.borderRadius,
+              onClick: widget.onClick,
+              margin: widget.margin,
+            ),
+          ),
           // Show HeatMapColorTip if showColorTip is true.
           if (widget.showColorTip == true)
             HeatMapColorTip(
               color: widget.color,
+              defaultColor: widget.defaultColor,
               borderRadius: widget.borderRadius,
               leftWidget: widget.colorTipHelper?[0],
               rightWidget: widget.colorTipHelper?[1],

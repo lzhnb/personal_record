@@ -8,6 +8,9 @@ class HeatMapColorTip extends StatelessWidget {
   /// The color value.
   final Color? color;
 
+  /// The default background color value of every blocks.
+  final Color? defaultColor;
+
   /// The double value of every block's borderRadius.
   final double? borderRadius;
 
@@ -30,6 +33,7 @@ class HeatMapColorTip extends StatelessWidget {
   const HeatMapColorTip({
     Key? key,
     this.color,
+    this.defaultColor,
     this.borderRadius,
     this.leftWidget,
     this.rightWidget,
@@ -46,7 +50,7 @@ class HeatMapColorTip extends StatelessWidget {
 
     for (int i = 0; i < (containerCount ?? _defaultLength); i++) {
       children.add(_tipContainer(i == 0
-          ? HeatMapColor.defaultColor
+          ? (defaultColor ?? HeatMapColor.defaultColor)
           : color?.withOpacity(i / (containerCount ?? _defaultLength)) ??
               Colors.white));
     }
