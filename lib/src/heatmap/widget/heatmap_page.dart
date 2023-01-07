@@ -47,7 +47,7 @@ class HeatMapPage extends StatelessWidget {
   /// The text color value of every blocks.
   final Color? textColor;
 
-  final Map<int, Color>? colorsets;
+  final Color? color;
 
   /// The double value of every block's borderRadius.
   final double? borderRadius;
@@ -73,7 +73,7 @@ class HeatMapPage extends StatelessWidget {
     this.datasets,
     this.defaultColor,
     this.textColor,
-    this.colorsets,
+    this.color,
     this.borderRadius,
     this.onClick,
     this.margin,
@@ -110,7 +110,7 @@ class HeatMapPage extends StatelessWidget {
         size: size,
         fontSize: fontSize,
         defaultColor: defaultColor,
-        colorsets: colorsets,
+        color: color,
         textColor: textColor,
         borderRadius: borderRadius,
         margin: margin,

@@ -133,9 +133,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   startDate: DateTime(2023, 1, 1),
                   endDate: DateTime(2023, 12, 31),
                   textColor: Colors.black,
-                  colorsets: const {
-                    1: Color.fromRGBO(255, 144, 0, 1.0),
-                  },
+                  color: const Color.fromRGBO(255, 144, 0, 1.0),
                 ),
               ),
             ),
@@ -164,9 +162,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   startDate: DateTime(2023, 1, 1),
                   endDate: DateTime(2023, 12, 31),
                   textColor: Colors.black,
-                  colorsets: const {
-                    1: Color.fromRGBO(218, 65, 64, 1.0),
-                  },
+                  color: const Color.fromRGBO(218, 65, 64, 1.0),
                 ),
               ),
             ),

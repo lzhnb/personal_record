@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import './date_util.dart';
 
 class DatasetsUtil {
@@ -26,16 +25,5 @@ class DatasetsUtil {
     });
 
     return result;
-  }
-
-  /// Get color from [colorsets] using [dataValue].
-  static Color? getColor(Map<int, Color>? colorsets, int? dataValue) {
-    int result = 0;
-
-    colorsets?.forEach((key, value) {
-      if (key <= (dataValue ?? 0)) result = key;
-    });
-
-    return colorsets?[result];
   }
 }

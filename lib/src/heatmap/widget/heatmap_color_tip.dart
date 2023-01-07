@@ -5,8 +5,8 @@ class HeatMapColorTip extends StatelessWidget {
   /// Default length of [containerCount].
   final int _defaultLength = 7;
 
-  /// The colorsets which give the color value for its thresholds key value.
-  final Map<int, Color>? colorsets;
+  /// The color value.
+  final Color? color;
 
   /// The widget which shows left side of [HeatMapColorTip].
   ///
@@ -26,7 +26,7 @@ class HeatMapColorTip extends StatelessWidget {
 
   const HeatMapColorTip({
     Key? key,
-    this.colorsets,
+    this.color,
     this.leftWidget,
     this.rightWidget,
     this.containerCount,
@@ -41,9 +41,9 @@ class HeatMapColorTip extends StatelessWidget {
     List<Widget> children = [];
 
     for (int i = 0; i < (containerCount ?? _defaultLength); i++) {
-      children.add(_tipContainer(colorsets?.values.first
-              .withOpacity(i / (containerCount ?? _defaultLength)) ??
-          Colors.white));
+      children.add(_tipContainer(
+          color?.withOpacity(i / (containerCount ?? _defaultLength)) ??
+              Colors.white));
     }
     return children;
   }

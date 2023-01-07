@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import './heatmap_container.dart';
 import '../util/date_util.dart';
-import '../util/datasets_util.dart';
 
 class HeatMapColumn extends StatelessWidget {
   /// The List widgets of [HeatMapContainer].
@@ -39,8 +38,8 @@ class HeatMapColumn extends StatelessWidget {
   /// The text color value of [HeatMapContainer].
   final Color? textColor;
 
-  /// The colorsets which give the color value for its thresholds key value.
-  final Map<int, Color>? colorsets;
+  /// The color value.
+  final Color? color;
 
   /// The double value of [HeatMapContainer]'s borderRadius.
   final double? borderRadius;
@@ -75,7 +74,7 @@ class HeatMapColumn extends StatelessWidget {
     this.textColor,
     this.borderRadius,
     this.margin,
-    this.colorsets,
+    this.color,
     this.onClick,
     this.maxValue,
     this.showText,
@@ -102,21 +101,15 @@ class HeatMapColumn extends StatelessWidget {
                           startDate.month,
                           startDate.day - startDate.weekday % 7 + i)) ??
                       false
-                  // Color the container with first value of colorsets
-                  // and set opacity value to current day's datasets key
+                  // Color and set opacity value to current day's datasets key
                   // devided by maxValue which is the maximum value of the month.
-                  ? colorsets?.values.first.withOpacity((datasets?[DateTime(
+                  ? color?.withOpacity((datasets?[DateTime(
                               startDate.year,
                               startDate.month,
                               startDate.day + i - (startDate.weekday % 7))] ??
                           1) /
                       (maxValue ?? 1))
-                  // Get color value from colorsets which is filtered with DateTime value
-                  // Using DatasetsUtil.getColor()
-                  : DatasetsUtil.getColor(
-                      colorsets,
-                      datasets?[DateTime(startDate.year, startDate.month,
-                          startDate.day + i - (startDate.weekday % 7))])),
+                  : null),
         ),
         // Fill emptySpace list only if given wek doesn't have 7 days.
         emptySpace = (numDays != 7)

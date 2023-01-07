@@ -32,8 +32,8 @@ class HeatMap extends StatefulWidget {
   /// The double value of every block's fontSize.
   final double? fontSize;
 
-  /// The colorsets which give the color value for its thresholds key value.
-  final Map<int, Color> colorsets;
+  /// The color value.
+  final Color color;
 
   /// Function that will be called when a block is clicked.
   ///
@@ -76,7 +76,7 @@ class HeatMap extends StatefulWidget {
 
   const HeatMap({
     Key? key,
-    required this.colorsets,
+    required this.color,
     this.startDate,
     this.endDate,
     this.textColor,
@@ -126,7 +126,7 @@ class _HeatMap extends State<HeatMap> {
           datasets: widget.datasets,
           defaultColor: widget.defaultColor,
           textColor: widget.textColor,
-          colorsets: widget.colorsets,
+          color: widget.color,
           borderRadius: widget.borderRadius,
           onClick: widget.onClick,
           margin: widget.margin,
@@ -136,7 +136,7 @@ class _HeatMap extends State<HeatMap> {
         // Show HeatMapColorTip if showColorTip is true.
         if (widget.showColorTip == true)
           HeatMapColorTip(
-            colorsets: widget.colorsets,
+            color: widget.color,
             leftWidget: widget.colorTipHelper?[0],
             rightWidget: widget.colorTipHelper?[1],
             containerCount: widget.colorTipCount,
