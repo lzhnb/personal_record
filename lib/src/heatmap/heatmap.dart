@@ -113,36 +113,40 @@ class _HeatMap extends State<HeatMap> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        // Heatmap Widget.
-        _scrollableHeatMap(HeatMapPage(
-          endDate: widget.endDate ?? DateTime.now(),
-          startDate: widget.startDate ??
-              DateUtil.oneYearBefore(widget.endDate ?? DateTime.now()),
-          size: widget.size,
-          fontSize: widget.fontSize,
-          datasets: widget.datasets,
-          defaultColor: widget.defaultColor,
-          textColor: widget.textColor,
-          color: widget.color,
-          borderRadius: widget.borderRadius,
-          onClick: widget.onClick,
-          margin: widget.margin,
-          showText: widget.showText,
-        )),
-
-        // Show HeatMapColorTip if showColorTip is true.
-        if (widget.showColorTip == true)
-          HeatMapColorTip(
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 800),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          // Heatmap Widget.
+          _scrollableHeatMap(HeatMapPage(
+            endDate: widget.endDate ?? DateTime.now(),
+            startDate: widget.startDate ??
+                DateUtil.oneYearBefore(widget.endDate ?? DateTime.now()),
+            size: widget.size,
+            fontSize: widget.fontSize,
+            datasets: widget.datasets,
+            defaultColor: widget.defaultColor,
+            textColor: widget.textColor,
             color: widget.color,
-            leftWidget: widget.colorTipHelper?[0],
-            rightWidget: widget.colorTipHelper?[1],
-            containerCount: widget.colorTipCount,
-            size: widget.colorTipSize,
-          ),
-      ],
+            borderRadius: widget.borderRadius,
+            onClick: widget.onClick,
+            margin: widget.margin,
+            showText: widget.showText,
+          )),
+
+          // Show HeatMapColorTip if showColorTip is true.
+          if (widget.showColorTip == true)
+            HeatMapColorTip(
+              color: widget.color,
+              borderRadius: widget.borderRadius,
+              leftWidget: widget.colorTipHelper?[0],
+              rightWidget: widget.colorTipHelper?[1],
+              containerCount: widget.colorTipCount,
+              size: widget.colorTipSize,
+            ),
+        ],
+      ),
     );
   }
 }

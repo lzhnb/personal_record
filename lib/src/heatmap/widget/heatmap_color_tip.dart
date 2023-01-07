@@ -1,12 +1,15 @@
-import 'package:flutter/material.dart';
-import '../data/heatmap_color.dart';
+import "package:flutter/material.dart";
+import "../data/heatmap_color.dart";
 
 class HeatMapColorTip extends StatelessWidget {
   /// Default length of [containerCount].
-  final int _defaultLength = 7;
+  final int _defaultLength = 5;
 
   /// The color value.
   final Color? color;
+
+  /// The double value of every block's borderRadius.
+  final double? borderRadius;
 
   /// The widget which shows left side of [HeatMapColorTip].
   ///
@@ -27,6 +30,7 @@ class HeatMapColorTip extends StatelessWidget {
   const HeatMapColorTip({
     Key? key,
     this.color,
+    this.borderRadius,
     this.leftWidget,
     this.rightWidget,
     this.containerCount,
@@ -41,8 +45,9 @@ class HeatMapColorTip extends StatelessWidget {
     List<Widget> children = [];
 
     for (int i = 0; i < (containerCount ?? _defaultLength); i++) {
-      children.add(_tipContainer(
-          color?.withOpacity(i / (containerCount ?? _defaultLength)) ??
+      children.add(_tipContainer(i == 0
+          ? HeatMapColor.defaultColor
+          : color?.withOpacity(i / (containerCount ?? _defaultLength)) ??
               Colors.white));
     }
     return children;
@@ -50,34 +55,44 @@ class HeatMapColorTip extends StatelessWidget {
 
   /// Container which is colored by [color].
   Widget _tipContainer(Color color) {
-    return Container(
-      color: HeatMapColor.defaultColor,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 1),
       child: Container(
         width: size ?? 10,
         height: size ?? 10,
-        color: color,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.all(
+            Radius.circular(borderRadius ?? 5),
+          ),
+        ),
       ),
     );
   }
 
   /// Default text widget.
   Widget _defaultText(String text) {
-    return Text(
-      text,
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: size ?? 10),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Text(
+        text,
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: size ?? 10),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
+    return Container(
+      padding: const EdgeInsets.only(top: 8, right: 20),
+      alignment: Alignment.centerRight,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          leftWidget ?? _defaultText('less'),
+          leftWidget ?? _defaultText("Less"),
           ..._heatmapList(),
-          rightWidget ?? _defaultText('more'),
+          rightWidget ?? _defaultText("More"),
         ],
       ),
     );
