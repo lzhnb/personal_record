@@ -2,8 +2,8 @@ import "dart:convert";
 import "dart:io";
 import "package:table_calendar/table_calendar.dart";
 import "package:flutter/material.dart";
-// ignore: depend_on_referenced_packages
-import "package:intl/intl.dart";
+
+import "src/heatmap/util/date_util.dart";
 
 final kToday = DateTime.now();
 final kFirstDay = DateTime(kToday.year - 1, 1, 1);
@@ -62,7 +62,6 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
   final TextEditingController bookFileController = TextEditingController();
 
   // parse json
-  final DateFormat formatter = DateFormat("yyyy-MM-dd");
   Map<String, dynamic> tokenDatabase = {};
   Map<String, dynamic> bookDatabase = {};
 
@@ -95,8 +94,17 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                       runningController.text = "0";
                     } else if (runningController.text == "0") {
                     } else {
-                      runningController.text =
-                          (int.parse(runningController.text) - 1).toString();
+                      double? value = double.tryParse(runningController.text);
+                      if (value == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Invalid input running distance!"),
+                          ),
+                        );
+                        runningController.text = "0";
+                      } else {
+                        runningController.text = (value - 1).toString();
+                      }
                     }
                   }),
                 ),
@@ -135,8 +143,17 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                     if (runningController.text == "") {
                       runningController.text = "1";
                     } else {
-                      runningController.text =
-                          (int.parse(runningController.text) + 1).toString();
+                      double? value = double.tryParse(runningController.text);
+                      if (value == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Invalid input running distance!"),
+                          ),
+                        );
+                        runningController.text = "0";
+                      } else {
+                        runningController.text = (value + 1).toString();
+                      }
                     }
                   }),
                 ),
@@ -153,9 +170,10 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               ),
               child: const Text("COMMIT RUNNING"),
               onPressed: () {
-                int? runningDistance = int.tryParse(runningController.text);
+                double? runningDistance =
+                    double.tryParse(runningController.text);
                 if (runningDistance != null) {
-                  final String dateString = formatter.format(_focusedDay);
+                  final String dateString = DateUtil.date_format(_focusedDay);
                   setState(() {
                     if (tokenDatabase[dateString] == null) {
                       tokenDatabase[dateString] = {
@@ -168,6 +186,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                     updateDatabase(
                         {"tokens": tokenDatabase, "books": bookDatabase});
                   });
+                  runningController.text = "0";
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -175,8 +194,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                           Text("Invalid input datetime or running distance!"),
                     ),
                   );
+                  runningController.text = "0";
                 }
-                runningController.text = "0";
               },
             ),
           )
@@ -211,7 +230,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
             onPressed: () {
               final String paperTitle = readingController.text;
               if (paperTitle != "") {
-                final String dateString = formatter.format(_focusedDay);
+                final String dateString = DateUtil.date_format(_focusedDay);
                 setState(() {
                   if (tokenDatabase[dateString] == null) {
                     tokenDatabase[dateString] = {
@@ -241,7 +260,9 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
   Future<void> _addBook(BuildContext context) async {
     // Create AlertDialog
+    // ignore: no_leading_underscores_for_local_identifiers
     final FocusNode _focusNode = FocusNode();
+    // ignore: no_leading_underscores_for_local_identifiers
     final GlobalKey _autocompleteKey = GlobalKey();
     AlertDialog dialog = AlertDialog(
       title:
@@ -435,7 +456,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
     // ignore: no_leading_underscores_for_local_identifiers
     Future<void> _renameDialog(BuildContext context, int index) async {
       tempReadingController.text =
-          tokenDatabase[formatter.format(_focusedDay)]["reading"][index];
+          tokenDatabase[DateUtil.date_format(_focusedDay)]["reading"][index];
       // Create AlertDialog
       AlertDialog dialog = AlertDialog(
         title: const Text("重命名文章"),
@@ -460,7 +481,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               } else {
                 setState(
                   () {
-                    tokenDatabase[formatter.format(_focusedDay)]["reading"]
+                    tokenDatabase[DateUtil.date_format(_focusedDay)]["reading"]
                         [index] = tempReadingController.text;
                     Navigator.of(context).pop(true);
                   },
@@ -512,7 +533,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 ),
                 onPressed: () {
                   setState(() {
-                    tokenDatabase[formatter.format(_focusedDay)]["reading"]
+                    tokenDatabase[DateUtil.date_format(_focusedDay)]["reading"]
                         .removeAt(index);
                     updateDatabase(
                         {"tokens": tokenDatabase, "books": bookDatabase});
@@ -527,8 +548,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
 
     // parse paperList
     List<String> paperList = [];
-    if (tokenDatabase[formatter.format(_focusedDay)] != null) {
-      paperList = (tokenDatabase[formatter.format(_focusedDay)]["reading"]
+    if (tokenDatabase[DateUtil.date_format(_focusedDay)] != null) {
+      paperList = (tokenDatabase[DateUtil.date_format(_focusedDay)]["reading"]
               as List<dynamic>)
           .cast<String>();
     }
@@ -605,7 +626,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
           children: [
             Center(
               child: Text(
-                " 📅日期：${formatter.format(_focusedDay)}",
+                " 📅日期：${DateUtil.date_format(_focusedDay)}",
                 textScaleFactor: 2,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -652,7 +673,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               child: Row(
                 children: <Widget>[
                   Text(
-                    " 🏃‍今日跑步（公里）：${(tokenDatabase[formatter.format(_focusedDay)] == null) ? 0 : tokenDatabase[formatter.format(_focusedDay)]["running"] ?? 0}",
+                    " 🏃‍今日跑步（公里）：${(tokenDatabase[DateUtil.date_format(_focusedDay)] == null) ? 0 : tokenDatabase[DateUtil.date_format(_focusedDay)]["running"] ?? 0}",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,
@@ -667,7 +688,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    " 📰今日阅读论文：${(tokenDatabase[formatter.format(_focusedDay)] == null) ? 0 : tokenDatabase[formatter.format(_focusedDay)]["reading"].length ?? 0}",
+                    " 📰今日阅读论文：${(tokenDatabase[DateUtil.date_format(_focusedDay)] == null) ? 0 : tokenDatabase[DateUtil.date_format(_focusedDay)]["reading"].length ?? 0}",
                     style: const TextStyle(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.left,
                     textScaleFactor: 1.5,

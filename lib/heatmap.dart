@@ -2,9 +2,9 @@
 
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
-import "package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart";
 import "dart:convert";
 import "dart:io";
+import "src/heatmap/heatmap.dart";
 
 // from https://zhuanlan.zhihu.com/p/350146779
 class FixedSizeGridDelegate extends SliverGridDelegate {
@@ -74,11 +74,20 @@ class _MyHeatMapState extends State<MyHeatMap> {
     // parse tokens
     Map<String, dynamic> tokenDatabase = jsonDecode(jsonString)["tokens"];
     Map<String, dynamic> bookDatabase = jsonDecode(jsonString)["books"];
-    int runningCount = 0, paperCount = 0;
-    Map<DateTime, int> runningMapDataset = {};
-    Map<DateTime, int> readingMapDataset = {};
+    double runningCount = 0, paperCount = 0;
+    Map<DateTime, double> runningMapDataset = {};
+    Map<DateTime, double> readingMapDataset = {};
     tokenDatabase.forEach((date, value) {
-      int running = value["running"] ?? 0;
+      var running = value["running"];
+      if (running is double) {
+        running = running;
+      } else {
+        try {
+          running = running.toDouble();
+        } catch (e) {
+          throw Exception("Error in parsing running!");
+        }
+      }
       List<String> reading = (value["reading"] as List<dynamic>).cast<String>();
       runningCount += running;
       paperCount += reading.length;
@@ -86,7 +95,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
         runningMapDataset[DateTime.parse(date)] = running;
       }
       if (reading.isNotEmpty) {
-        readingMapDataset[DateTime.parse(date)] = reading.length;
+        readingMapDataset[DateTime.parse(date)] = reading.length.toDouble();
       }
     });
 
@@ -111,7 +120,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                "🏃‍累计跑步（公里）：${runningCount}",
+                "🏃‍累计跑步: ${runningCount} km",
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
@@ -133,17 +142,14 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   startDate: DateTime(2023, 1, 1),
                   endDate: DateTime(2023, 12, 31),
                   textColor: Colors.black,
-                  colorMode: ColorMode.opacity,
-                  colorsets: const {
-                    1: Color.fromRGBO(255, 144, 0, 1.0),
-                  },
+                  color: const Color.fromRGBO(255, 144, 0, 1.0),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                "📰累计阅读论文：${paperCount}",
+                "📰累计阅读论文: ${paperCount.toInt()}",
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
@@ -165,17 +171,14 @@ class _MyHeatMapState extends State<MyHeatMap> {
                   startDate: DateTime(2023, 1, 1),
                   endDate: DateTime(2023, 12, 31),
                   textColor: Colors.black,
-                  colorMode: ColorMode.opacity,
-                  colorsets: const {
-                    1: Color.fromRGBO(218, 65, 64, 1.0),
-                  },
+                  color: const Color.fromRGBO(218, 65, 64, 1.0),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                "📘累计阅读书籍：${bookCount}",
+                "📘累计阅读书籍: ${bookCount}",
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,
