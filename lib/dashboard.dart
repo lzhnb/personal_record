@@ -94,8 +94,17 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                       runningController.text = "0";
                     } else if (runningController.text == "0") {
                     } else {
-                      runningController.text =
-                          (int.parse(runningController.text) - 1).toString();
+                      double? value = double.tryParse(runningController.text);
+                      if (value == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Invalid input running distance!"),
+                          ),
+                        );
+                        runningController.text = "0";
+                      } else {
+                        runningController.text = (value - 1).toString();
+                      }
                     }
                   }),
                 ),
@@ -134,8 +143,17 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                     if (runningController.text == "") {
                       runningController.text = "1";
                     } else {
-                      runningController.text =
-                          (int.parse(runningController.text) + 1).toString();
+                      double? value = double.tryParse(runningController.text);
+                      if (value == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Invalid input running distance!"),
+                          ),
+                        );
+                        runningController.text = "0";
+                      } else {
+                        runningController.text = (value + 1).toString();
+                      }
                     }
                   }),
                 ),
@@ -152,7 +170,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
               ),
               child: const Text("COMMIT RUNNING"),
               onPressed: () {
-                int? runningDistance = int.tryParse(runningController.text);
+                double? runningDistance =
+                    double.tryParse(runningController.text);
                 if (runningDistance != null) {
                   final String dateString = DateUtil.date_format(_focusedDay);
                   setState(() {
@@ -167,6 +186,7 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                     updateDatabase(
                         {"tokens": tokenDatabase, "books": bookDatabase});
                   });
+                  runningController.text = "0";
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -174,8 +194,8 @@ class _CalendarDashboardState extends State<CalendarDashboard> {
                           Text("Invalid input datetime or running distance!"),
                     ),
                   );
+                  runningController.text = "0";
                 }
-                runningController.text = "0";
               },
             ),
           )

@@ -35,7 +35,7 @@ class HeatMapPage extends StatelessWidget {
   final double? fontSize;
 
   /// The datasets which fill blocks based on its value.
-  final Map<DateTime, int>? datasets;
+  final Map<DateTime, double>? datasets;
 
   /// The integer value of the maximum value for the [datasets].
   final int? maxValue;

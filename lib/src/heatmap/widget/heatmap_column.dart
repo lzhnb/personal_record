@@ -35,7 +35,7 @@ class HeatMapColumn extends StatelessWidget {
   ///
   /// datasets keys have to greater or equal to [startDate] and
   /// smaller or equal to [endDate].
-  final Map<DateTime, int>? datasets;
+  final Map<DateTime, double>? datasets;
 
   /// The text color value of [HeatMapContainer].
   final Color? textColor;

@@ -74,11 +74,20 @@ class _MyHeatMapState extends State<MyHeatMap> {
     // parse tokens
     Map<String, dynamic> tokenDatabase = jsonDecode(jsonString)["tokens"];
     Map<String, dynamic> bookDatabase = jsonDecode(jsonString)["books"];
-    int runningCount = 0, paperCount = 0;
-    Map<DateTime, int> runningMapDataset = {};
-    Map<DateTime, int> readingMapDataset = {};
+    double runningCount = 0, paperCount = 0;
+    Map<DateTime, double> runningMapDataset = {};
+    Map<DateTime, double> readingMapDataset = {};
     tokenDatabase.forEach((date, value) {
-      int running = value["running"] ?? 0;
+      var running = value["running"];
+      if (running is double) {
+        running = running;
+      } else {
+        try {
+          running = running.toDouble();
+        } catch (e) {
+          throw Exception("Error in parsing running!");
+        }
+      }
       List<String> reading = (value["reading"] as List<dynamic>).cast<String>();
       runningCount += running;
       paperCount += reading.length;
@@ -86,7 +95,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
         runningMapDataset[DateTime.parse(date)] = running;
       }
       if (reading.isNotEmpty) {
-        readingMapDataset[DateTime.parse(date)] = reading.length;
+        readingMapDataset[DateTime.parse(date)] = reading.length.toDouble();
       }
     });
 
@@ -140,7 +149,7 @@ class _MyHeatMapState extends State<MyHeatMap> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Text(
-                "📰累计阅读论文: ${paperCount}",
+                "📰累计阅读论文: ${paperCount.toInt()}",
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.left,
                 textScaleFactor: 1.6,

@@ -18,7 +18,7 @@ class HeatMap extends StatefulWidget {
   final DateTime? endDate;
 
   /// The datasets which fill blocks based on its value.
-  final Map<DateTime, int>? datasets;
+  final Map<DateTime, double>? datasets;
 
   /// The maximum of value.
   final int? maxValue;
